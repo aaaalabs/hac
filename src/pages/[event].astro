@@ -99,13 +99,7 @@ const pageDescription = `${event.title} am ${dateFormatted} in ${event.location}
           votingOpen={votingOpen}
           eventSlug={slug}
           index={i}
-        >
-          <!-- Vote display placeholder — replaced by VoteButton React island in Task 9 -->
-          <div slot="vote-button" class="flex items-center gap-2 px-3 py-2 min-h-[44px] text-[var(--text-muted)]">
-            <span aria-hidden="true">▲</span>
-            <span class="font-semibold tabular-nums">{votes[project.id] ?? 0}</span>
-          </div>
-        </ProjectCard>
+        />
       ))}
     </div>
 

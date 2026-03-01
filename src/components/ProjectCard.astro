@@ -1,6 +1,7 @@
 ---
 import type { Project } from '../lib/events';
 import ToolBadge from './ToolBadge.astro';
+import VoteButton from './VoteButton';
 
 interface Props {
   project: Project;
@@ -53,8 +54,15 @@ const screenshotFallback = `https://placehold.co/1200x750/F97316/FFFFFF?text=${e
 
     <!-- Actions -->
     <div class="flex items-center gap-3 pt-2 border-t border-[var(--light-gray)]">
-      <!-- VoteButton slot — React island injected by parent -->
-      <slot name="vote-button" />
+      <VoteButton
+        client:visible
+        eventSlug={eventSlug}
+        projectId={project.id}
+        projectName={project.name}
+        initialCount={initialVoteCount}
+        initialHasVoted={hasVoted}
+        votingOpen={votingOpen}
+      />
 
       <a
         href={project.appUrl}
