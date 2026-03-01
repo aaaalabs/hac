@@ -41,3 +41,14 @@ export async function recordVote(
   ]);
   return newCount;
 }
+
+const RATE_LIMIT_SECONDS = 5 * 60;
+
+export async function isRateLimited(ip: string): Promise<number> {
+  const ttl = await kv.ttl(`ratelimit:${ip}`);
+  return ttl > 0 ? ttl : 0;
+}
+
+export async function setRateLimit(ip: string): Promise<void> {
+  await kv.set(`ratelimit:${ip}`, '1', { ex: RATE_LIMIT_SECONDS });
+}

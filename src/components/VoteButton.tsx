@@ -20,9 +20,10 @@ export default function VoteButton({
   const [count, setCount] = useState(initialCount);
   const [hasVoted, setHasVoted] = useState(initialHasVoted);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
   async function handleVote() {
-    if (!votingOpen || hasVoted) return;
+    if (!votingOpen || hasVoted || cooldown > 0) return;
 
     // Optimistic update
     setCount(c => c + 1);
@@ -38,13 +39,19 @@ export default function VoteButton({
       });
       const data = await res.json();
 
+      if (res.status === 429) {
+        // Rate limited — rollback + show countdown
+        setCount(c => c - 1);
+        setHasVoted(false);
+        startCooldown(data.retryAfter ?? 300);
+        return;
+      }
+
       if (!res.ok || !data.success) {
-        // Rollback or sync with server state
         setCount(data.votes ?? count);
-        setHasVoted(res.status === 409); // keep voted if duplicate
+        setHasVoted(res.status === 409);
       } else {
         setCount(data.votes);
-        // Set cookie so page reload preserves voted state
         const existing = document.cookie
           .split('; ')
           .find(r => r.startsWith(`voted_${eventSlug}=`))
@@ -53,10 +60,19 @@ export default function VoteButton({
         document.cookie = `voted_${eventSlug}=${ids}; max-age=${60 * 60 * 24 * 30}; path=/`;
       }
     } catch {
-      // Network error — rollback
       setCount(c => c - 1);
       setHasVoted(false);
     }
+  }
+
+  function startCooldown(seconds: number) {
+    setCooldown(seconds);
+    const interval = setInterval(() => {
+      setCooldown(s => {
+        if (s <= 1) { clearInterval(interval); return 0; }
+        return s - 1;
+      });
+    }, 1000);
   }
 
   if (!votingOpen) {
@@ -64,6 +80,15 @@ export default function VoteButton({
       <div className="flex items-center gap-2 px-3 py-2 min-h-[44px] text-[var(--text-muted)]">
         <span aria-hidden="true">▲</span>
         <span className="font-semibold tabular-nums">{count}</span>
+      </div>
+    );
+  }
+
+  if (cooldown > 0) {
+    const mins = Math.ceil(cooldown / 60);
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-[var(--mid-gray)] min-h-[44px] text-xs text-[var(--text-muted)]">
+        ⏳ {mins}min
       </div>
     );
   }

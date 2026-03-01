@@ -2,7 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { loadEvent, findProject, isVotingOpen } from '../../lib/events';
-import { getVoteCount, hasVoted, recordVote } from '../../lib/kv';
+import { getVoteCount, hasVoted, recordVote, isRateLimited, setRateLimit } from '../../lib/kv';
 import { createVoterHash } from '../../lib/voting';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -36,7 +36,12 @@ export const POST: APIRoute = async ({ request }) => {
     import.meta.env.VOTE_SALT ?? 'dev-salt',
   );
 
-  if (await hasVoted(eventSlug, projectId, voterHash)) {
+  const [alreadyVoted, rateLimitTtl] = await Promise.all([
+    hasVoted(eventSlug, projectId, voterHash),
+    isRateLimited(ip),
+  ]);
+
+  if (alreadyVoted) {
     const votes = await getVoteCount(eventSlug, projectId);
     return Response.json(
       { success: false, error: 'already_voted', votes },
@@ -44,6 +49,14 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
+  if (rateLimitTtl > 0) {
+    return Response.json(
+      { success: false, error: 'rate_limited', retryAfter: rateLimitTtl },
+      { status: 429 },
+    );
+  }
+
   const votes = await recordVote(eventSlug, projectId, voterHash);
+  await setRateLimit(ip);
   return Response.json({ success: true, votes });
 };
