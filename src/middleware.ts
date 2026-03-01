@@ -11,7 +11,7 @@ export const onRequest = defineMiddleware(async ({ url, request, cookies }, next
   // Login page and login API are always public
   if (path === '/admin/login' || path === '/api/admin/login') return next();
 
-  if (path.startsWith('/admin') || path.startsWith('/api/admin')) {
+  if (path === '/admin' || path.startsWith('/admin/') || path.startsWith('/api/admin/')) {
     const session = cookies.get('admin_session')?.value;
     const expected = sessionToken(import.meta.env.HACKIN_CREW_PASSWORD ?? '');
 
