@@ -12,12 +12,22 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ error: 'missing_fields' }, { status: 400 });
   }
 
-  const ext = file.name.split('.').pop() ?? 'png';
-  const blob = await put(`screenshots/${eventSlug}/${projectId}.${ext}`, file, {
-    access: 'public',
-    addRandomSuffix: false,
-    token: import.meta.env.BLOB_READ_WRITE_TOKEN,
-  });
+  const token = process.env['BLOB_READ_WRITE_TOKEN'];
+  if (!token) {
+    return Response.json({ error: 'blob_token_missing' }, { status: 500 });
+  }
 
-  return Response.json({ url: blob.url });
+  const ext = file.name.split('.').pop() ?? 'png';
+  try {
+    const blob = await put(`screenshots/${eventSlug}/${projectId}.${ext}`, file, {
+      access: 'public',
+      addRandomSuffix: false,
+      token,
+    });
+    return Response.json({ url: blob.url });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[upload] blob error:', msg);
+    return Response.json({ error: msg }, { status: 500 });
+  }
 };
