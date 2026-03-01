@@ -3,12 +3,9 @@ import type { APIRoute } from 'astro';
 import { put } from '@vercel/blob';
 
 export const POST: APIRoute = async ({ request }) => {
-  const form = await request.formData();
-  const file = form.get('file') as File | null;
-  const eventSlug = form.get('eventSlug') as string | null;
-  const projectId = form.get('projectId') as string | null;
+  const { base64, contentType, eventSlug, projectId } = await request.json();
 
-  if (!file || !eventSlug || !projectId) {
+  if (!base64 || !eventSlug || !projectId) {
     return Response.json({ error: 'missing_fields' }, { status: 400 });
   }
 
@@ -17,11 +14,14 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ error: 'blob_token_missing' }, { status: 500 });
   }
 
-  const ext = file.name.split('.').pop() ?? 'png';
+  const ext = (contentType as string)?.split('/')[1]?.replace('jpeg', 'jpg') ?? 'png';
+  const buffer = Buffer.from(base64 as string, 'base64');
+
   try {
-    const blob = await put(`screenshots/${eventSlug}/${projectId}.${ext}`, file, {
+    const blob = await put(`screenshots/${eventSlug}/${projectId}.${ext}`, buffer, {
       access: 'public',
       addRandomSuffix: false,
+      contentType: contentType ?? 'image/png',
       token,
     });
     return Response.json({ url: blob.url });

@@ -250,16 +250,37 @@ const eventsWithProjects = events.map(e => ({
     btn.textContent = loading ? 'Lädt...' : label;
   }
 
-  // Screenshot Upload
+  // Screenshot Upload — base64 JSON to avoid Vercel CSRF protection on multipart
   const uploadForm = document.getElementById('upload-form') as HTMLFormElement;
   uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = uploadForm.querySelector('button[type="submit"]') as HTMLButtonElement;
     const result = document.getElementById('upload-result')!;
+
+    const fileInput = uploadForm.querySelector('[name="file"]') as HTMLInputElement;
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
     setLoading(btn, true, 'Hochladen');
 
-    const formData = new FormData(uploadForm);
-    const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve((reader.result as string).split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const fd = new FormData(uploadForm);
+    const res = await fetch('/api/admin/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        base64,
+        contentType: file.type,
+        eventSlug: fd.get('eventSlug'),
+        projectId: fd.get('projectId'),
+      }),
+    });
     const data = res.ok ? await res.json() : { error: await res.text().catch(() => `HTTP ${res.status}`) };
 
     setLoading(btn, false, 'Hochladen');
