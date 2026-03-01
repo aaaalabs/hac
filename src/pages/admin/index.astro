@@ -1,0 +1,307 @@
+---
+export const prerender = false;
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { loadAllEvents } from '../../lib/events';
+
+const events = await loadAllEvents();
+const eventOptions = events.map(e => ({ slug: e.slug, title: e.title }));
+---
+
+<BaseLayout title="Admin – hac.kinn.at" description="Admin" noindex={true}>
+  <main class="max-w-2xl mx-auto px-4 py-10">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-10">
+      <div class="flex items-center gap-3">
+        <a href="/" class="text-[var(--text-muted)] hover:text-[var(--orange)] transition-colors text-sm">← Zur Seite</a>
+        <span class="text-[var(--mid-gray)]">|</span>
+        <h1 class="text-xl font-black text-[var(--dark-2)]">Hackin' Crew Admin</h1>
+      </div>
+      <button id="logout-btn" class="text-sm text-[var(--text-muted)] hover:text-red-500 transition-colors">
+        Logout
+      </button>
+    </div>
+
+    <!-- Section 1: Screenshot Upload -->
+    <section class="bg-white rounded-2xl border border-[var(--mid-gray)] p-6 mb-6">
+      <h2 class="text-base font-bold text-[var(--dark-2)] mb-4">📸 Screenshot hochladen</h2>
+      <form id="upload-form" class="flex flex-col gap-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Event</label>
+            <select name="eventSlug" required class="admin-input">
+              {eventOptions.map(e => <option value={e.slug}>{e.title}</option>)}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Project ID</label>
+            <input name="projectId" type="text" required placeholder="mein-projekt" class="admin-input" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Bild</label>
+          <input name="file" type="file" accept="image/*" required class="admin-input file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-[var(--light-gray)] file:text-[var(--dark)]" />
+        </div>
+        <button type="submit" class="admin-btn-primary">Hochladen</button>
+        <p id="upload-result" class="text-xs font-mono bg-[var(--light-gray)] rounded-lg px-3 py-2 hidden break-all"></p>
+      </form>
+    </section>
+
+    <!-- Section 2: Projekt hinzufügen -->
+    <section class="bg-white rounded-2xl border border-[var(--mid-gray)] p-6 mb-6">
+      <h2 class="text-base font-bold text-[var(--dark-2)] mb-4">➕ Projekt hinzufügen</h2>
+      <form id="project-form" class="flex flex-col gap-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Event</label>
+            <select name="eventSlug" required class="admin-input">
+              {eventOptions.map(e => <option value={e.slug}>{e.title}</option>)}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">ID (slug)</label>
+            <input name="id" type="text" required placeholder="mein-projekt" class="admin-input" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Name</label>
+          <input name="name" type="text" required placeholder="Mein Projekt" class="admin-input" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Beschreibung</label>
+          <textarea name="description" required rows="2" placeholder="Was macht das Projekt?" class="admin-input resize-none"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Team (kommagetrennt)</label>
+            <input name="team" type="text" required placeholder="Anna, Max, Lisa" class="admin-input" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Tool</label>
+            <select name="tool" required class="admin-input">
+              <option>Lovable</option>
+              <option>Bolt</option>
+              <option>v0</option>
+              <option>Cursor</option>
+              <option>Claude</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">App URL</label>
+          <input name="appUrl" type="url" required placeholder="https://..." class="admin-input" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Screenshot URL (aus Upload oben)</label>
+          <input name="screenshotPath" type="text" placeholder="https://... oder /screenshots/..." class="admin-input" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Demo Video URL (optional)</label>
+          <input name="demoVideoUrl" type="url" placeholder="https://..." class="admin-input" />
+        </div>
+        <button type="submit" class="admin-btn-primary">Speichern → GitHub commit</button>
+        <p id="project-result" class="text-xs hidden"></p>
+      </form>
+    </section>
+
+    <!-- Section 3: Neues Event -->
+    <section class="bg-white rounded-2xl border border-[var(--mid-gray)] p-6">
+      <h2 class="text-base font-bold text-[var(--dark-2)] mb-4">📅 Neues Event anlegen</h2>
+      <form id="event-form" class="flex flex-col gap-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Slug</label>
+            <input name="slug" type="text" required placeholder="buildathon-3" class="admin-input" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Datum</label>
+            <input name="date" type="date" required class="admin-input" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Titel</label>
+          <input name="title" type="text" required placeholder="Buildathon #3" class="admin-input" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Location</label>
+          <input name="location" type="text" required placeholder="WIFI Tirol, Innsbruck" class="admin-input" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Beschreibung</label>
+          <textarea name="description" rows="2" placeholder="..." class="admin-input resize-none"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Teilnehmer</label>
+            <input name="participantCount" type="number" placeholder="40" class="admin-input" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Voting endet</label>
+            <input name="votingEndsAt" type="datetime-local" class="admin-input" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Luma URL</label>
+          <input name="lumaUrl" type="url" placeholder="https://lu.ma/..." class="admin-input" />
+        </div>
+        <label class="flex items-center gap-2 text-sm text-[var(--dark)]">
+          <input name="featured" type="checkbox" class="rounded" />
+          Featured (orange Akzent auf Landing Page)
+        </label>
+        <button type="submit" class="admin-btn-primary">Anlegen → GitHub commit</button>
+        <p id="event-result" class="text-xs hidden"></p>
+      </form>
+    </section>
+
+  </main>
+</BaseLayout>
+
+<style>
+  .admin-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.625rem;
+    border: 2px solid var(--mid-gray);
+    font-size: 0.875rem;
+    color: var(--dark-2);
+    background: white;
+    transition: border-color 150ms;
+  }
+  .admin-input:focus {
+    outline: none;
+    border-color: var(--orange);
+  }
+  .admin-btn-primary {
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.75rem;
+    background: var(--orange);
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: background 150ms;
+    cursor: pointer;
+  }
+  .admin-btn-primary:hover {
+    background: var(--orange-deep);
+  }
+  .admin-btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+</style>
+
+<script>
+  // Logout
+  document.getElementById('logout-btn')!.addEventListener('click', async () => {
+    await fetch('/api/admin/logout', { method: 'POST' }).catch(() => {});
+    document.cookie = 'admin_session=; max-age=0; path=/';
+    window.location.href = '/admin/login';
+  });
+
+  function showResult(el: HTMLElement, msg: string, ok: boolean) {
+    el.textContent = msg;
+    el.className = `text-xs mt-1 ${ok ? 'text-green-600' : 'text-red-500'}`;
+    el.classList.remove('hidden');
+  }
+
+  function setLoading(btn: HTMLButtonElement, loading: boolean, label: string) {
+    btn.disabled = loading;
+    btn.textContent = loading ? 'Lädt...' : label;
+  }
+
+  // Screenshot Upload
+  const uploadForm = document.getElementById('upload-form') as HTMLFormElement;
+  uploadForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = uploadForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const result = document.getElementById('upload-result')!;
+    setLoading(btn, true, 'Hochladen');
+
+    const formData = new FormData(uploadForm);
+    const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    setLoading(btn, false, 'Hochladen');
+    if (res.ok) {
+      result.textContent = `✓ ${data.url}`;
+      result.className = 'text-xs font-mono bg-[var(--light-gray)] rounded-lg px-3 py-2 break-all text-green-700';
+      result.classList.remove('hidden');
+      // Copy URL to screenshotPath field
+      const screenshotInput = document.querySelector('#project-form [name="screenshotPath"]') as HTMLInputElement;
+      if (screenshotInput) screenshotInput.value = data.url;
+    } else {
+      result.textContent = `✗ Fehler: ${data.error}`;
+      result.className = 'text-xs font-mono bg-[var(--light-gray)] rounded-lg px-3 py-2 break-all text-red-600';
+      result.classList.remove('hidden');
+    }
+  });
+
+  // Add Project
+  const projectForm = document.getElementById('project-form') as HTMLFormElement;
+  projectForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = projectForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const result = document.getElementById('project-result')!;
+    setLoading(btn, true, 'Speichern → GitHub commit');
+
+    const fd = new FormData(projectForm);
+    const project = {
+      id: fd.get('id') as string,
+      name: fd.get('name') as string,
+      description: fd.get('description') as string,
+      team: (fd.get('team') as string).split(',').map(s => s.trim()).filter(Boolean),
+      tool: fd.get('tool') as string,
+      appUrl: fd.get('appUrl') as string,
+      screenshotPath: (fd.get('screenshotPath') as string) || null,
+      demoVideoUrl: (fd.get('demoVideoUrl') as string) || null,
+    };
+
+    const res = await fetch('/api/admin/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventSlug: fd.get('eventSlug'), project }),
+    });
+    const data = await res.json();
+
+    setLoading(btn, false, 'Speichern → GitHub commit');
+    showResult(result, res.ok ? `✓ "${project.name}" hinzugefügt — Vercel deployt in ~30s` : `✗ Fehler: ${data.error}`, res.ok);
+    if (res.ok) projectForm.reset();
+  });
+
+  // Create Event
+  const eventForm = document.getElementById('event-form') as HTMLFormElement;
+  eventForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = eventForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const result = document.getElementById('event-result')!;
+    setLoading(btn, true, 'Anlegen → GitHub commit');
+
+    const fd = new FormData(eventForm);
+    const count = fd.get('participantCount');
+    const votingEndsAt = fd.get('votingEndsAt') as string;
+    const event = {
+      slug: fd.get('slug') as string,
+      title: fd.get('title') as string,
+      date: fd.get('date') as string,
+      location: fd.get('location') as string,
+      description: (fd.get('description') as string) || undefined,
+      participantCount: count ? Number(count) : undefined,
+      votingEndsAt: votingEndsAt ? new Date(votingEndsAt).toISOString() : undefined,
+      lumaUrl: (fd.get('lumaUrl') as string) || undefined,
+      featured: fd.get('featured') === 'on',
+      projects: [],
+    };
+
+    const res = await fetch('/api/admin/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(event),
+    });
+    const data = await res.json();
+
+    setLoading(btn, false, 'Anlegen → GitHub commit');
+    showResult(result, res.ok ? `✓ Event "${event.title}" angelegt — Vercel deployt in ~30s` : `✗ Fehler: ${data.error}`, res.ok);
+    if (res.ok) eventForm.reset();
+  });
+</script>
