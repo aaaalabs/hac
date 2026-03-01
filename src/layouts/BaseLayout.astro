@@ -9,7 +9,7 @@ interface Props {
 }
 
 const { title, description, ogImage = '/og/default.png', noindex = false } = Astro.props;
-const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://hac.kinn.at');
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://hac.kinn.tirol');
 ---
 
 <!doctype html>
