@@ -58,7 +58,12 @@ const dateFormatted = new Date(event.date).toLocaleDateString('de-AT', {
           <span class="font-black text-[var(--orange)] text-lg">{event.projects.length}</span>
           {' '}{event.projects.length === 1 ? 'Prototyp' : 'Prototypen'}
         </span>
-        <span class="text-sm font-medium text-[var(--blue)]">Ansehen →</span>
+        <span class="flex items-center gap-1 text-sm font-medium text-[var(--blue)]">
+          Ansehen
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
       </div>
     </div>
 
@@ -72,8 +77,11 @@ const dateFormatted = new Date(event.date).toLocaleDateString('de-AT', {
           {event.projects.length === 1 ? 'Prototyp' : 'Prototypen'}
         </div>
       </div>
-      <span class="text-sm font-medium text-[var(--blue)] group-hover:translate-x-1 transition-transform inline-block">
-        Ansehen →
+      <span class="flex items-center gap-1 text-sm font-medium text-[var(--blue)] group-hover:translate-x-1 transition-transform">
+        Ansehen
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </span>
     </div>
   </div>
