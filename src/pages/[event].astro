@@ -1,0 +1,149 @@
+---
+export const prerender = false; // Serverless — liest live Votes aus KV
+
+import { loadEvent, isVotingOpen } from '../lib/events';
+import { getAllVotes } from '../lib/kv';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import VotingBadge from '../components/VotingBadge.astro';
+
+const { event: slug } = Astro.params;
+if (!slug) return Astro.redirect('/');
+
+const event = await loadEvent(slug);
+if (!event) return Astro.redirect('/');
+
+const votingOpen = isVotingOpen(event);
+
+let votes: Record<string, number> = {};
+try {
+  votes = await getAllVotes(slug, event.projects.map(p => p.id));
+} catch {
+  // Fallback to zero counts if KV is unavailable (local dev without credentials)
+  votes = Object.fromEntries(event.projects.map(p => [p.id, 0]));
+}
+
+// Cookie-basierter voted-State
+const votedCookie = Astro.cookies.get(`voted_${slug}`)?.value ?? '';
+const votedProjectIds = new Set(votedCookie.split(',').filter(Boolean));
+
+const dateFormatted = new Date(event.date).toLocaleDateString('de-AT', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+const pageTitle = `${event.title} - hac.kinn.at`;
+const pageDescription = `${event.title} am ${dateFormatted} in ${event.location}. ${event.projects.length} Prototypen gebaut in 4 Stunden - ausprobieren und voten.`;
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+  <Header />
+  <main id="main-content" class="max-w-[1200px] mx-auto px-4 sm:px-6 py-12">
+
+    <!-- Event-Header -->
+    <div class="mb-10">
+      <a href="/" class="inline-flex items-center gap-1 text-sm text-[var(--text-muted)] hover:text-[var(--orange)] transition-colors mb-4">
+        ← Alle Events
+      </a>
+      <div class="flex flex-wrap items-center gap-3 mb-3">
+        <VotingBadge votingOpen={votingOpen} />
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-black text-[var(--dark-2)]">
+        {event.title}
+      </h1>
+      <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--text-muted)]">
+        <span>{dateFormatted}</span>
+        <span>·</span>
+        <span>{event.location}</span>
+        {event.participantCount && (
+          <>
+            <span>·</span>
+            <span>{event.participantCount} Teilnehmer</span>
+          </>
+        )}
+      </div>
+      {event.description && (
+        <p class="mt-3 text-base text-[var(--dark)] max-w-2xl leading-relaxed">
+          {event.description}
+        </p>
+      )}
+    </div>
+
+    <!-- Sort Toggle -->
+    <div class="flex items-center gap-2 mb-6">
+      <span class="text-sm text-[var(--text-muted)] mr-1">Sortieren:</span>
+      <button
+        id="sort-votes"
+        class="sort-btn px-3 py-1.5 rounded-lg text-sm font-medium border-2 border-[var(--orange)] text-[var(--orange)] bg-[var(--orange-subtle)] transition-all"
+      >
+        Meiste Votes
+      </button>
+      <button
+        id="sort-random"
+        class="sort-btn px-3 py-1.5 rounded-lg text-sm font-medium border-2 border-[var(--mid-gray)] text-[var(--text-muted)] hover:border-[var(--orange)] hover:text-[var(--orange)] transition-all"
+      >
+        Zufall
+      </button>
+    </div>
+
+    <!-- Projekt-Grid -->
+    <div id="project-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {event.projects.map((project, i) => (
+        <ProjectCard
+          project={project}
+          initialVoteCount={votes[project.id] ?? 0}
+          hasVoted={votedProjectIds.has(project.id)}
+          votingOpen={votingOpen}
+          eventSlug={slug}
+          index={i}
+        >
+          <!-- Vote display placeholder — replaced by VoteButton React island in Task 9 -->
+          <div slot="vote-button" class="flex items-center gap-2 px-3 py-2 min-h-[44px] text-[var(--text-muted)]">
+            <span aria-hidden="true">▲</span>
+            <span class="font-semibold tabular-nums">{votes[project.id] ?? 0}</span>
+          </div>
+        </ProjectCard>
+      ))}
+    </div>
+
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  const grid = document.getElementById('project-grid')!;
+  const btnVotes = document.getElementById('sort-votes')!;
+  const btnRandom = document.getElementById('sort-random')!;
+
+  const activeClasses = ['border-[var(--orange)]', 'text-[var(--orange)]', 'bg-[var(--orange-subtle)]'];
+  const inactiveClasses = ['border-[var(--mid-gray)]', 'text-[var(--text-muted)]'];
+
+  function setActive(active: HTMLElement, inactive: HTMLElement) {
+    active.style.borderColor = 'var(--orange)';
+    active.style.color = 'var(--orange)';
+    active.style.background = 'var(--orange-subtle)';
+    inactive.style.borderColor = 'var(--mid-gray)';
+    inactive.style.color = 'var(--text-muted)';
+    inactive.style.background = '';
+  }
+
+  btnVotes.addEventListener('click', () => {
+    const cards = [...grid.children] as HTMLElement[];
+    cards
+      .sort((a, b) => Number(b.dataset.votes) - Number(a.dataset.votes))
+      .forEach(c => grid.appendChild(c));
+    setActive(btnVotes, btnRandom);
+  });
+
+  btnRandom.addEventListener('click', () => {
+    const cards = [...grid.children] as HTMLElement[];
+    for (let i = cards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      grid.insertBefore(cards[j], cards[i]);
+    }
+    setActive(btnRandom, btnVotes);
+  });
+</script>
