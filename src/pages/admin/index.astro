@@ -285,12 +285,27 @@ const eventsWithProjects = events.map(e => ({
 
     setLoading(btn, false, 'Hochladen');
     if (res.ok) {
-      result.textContent = `✓ ${data.url}`;
-      result.className = 'text-xs font-mono bg-[var(--light-gray)] rounded-lg px-3 py-2 break-all text-green-700';
-      result.classList.remove('hidden');
-      // Copy URL to screenshotPath field
+      // Copy URL to screenshotPath field in "add project" form
       const screenshotInput = document.querySelector('#project-form [name="screenshotPath"]') as HTMLInputElement;
       if (screenshotInput) screenshotInput.value = data.url;
+
+      // Also update screenshotPath on existing project immediately
+      const patchRes = await fetch('/api/admin/projects', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventSlug: fd.get('eventSlug'),
+          projectId: fd.get('projectId'),
+          screenshotPath: data.url,
+        }),
+      });
+      const patched = patchRes.ok;
+
+      result.textContent = patched
+        ? `✓ Hochgeladen & gespeichert — ${data.url}`
+        : `✓ Hochgeladen (neu anlegen nicht vergessen) — ${data.url}`;
+      result.className = `text-xs font-mono bg-[var(--light-gray)] rounded-lg px-3 py-2 break-all ${patched ? 'text-green-700' : 'text-amber-600'}`;
+      result.classList.remove('hidden');
     } else {
       result.textContent = `✗ Fehler: ${data.error}`;
       result.className = 'text-xs font-mono bg-[var(--light-gray)] rounded-lg px-3 py-2 break-all text-red-600';
