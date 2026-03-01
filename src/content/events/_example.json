@@ -1,0 +1,23 @@
+{
+  "slug": "event-slug",
+  "title": "Event-Titel",
+  "date": "2026-01-01",
+  "location": "Ort, Innsbruck",
+  "description": "Kurze Beschreibung des Events (1-2 Sätze).",
+  "participantCount": 40,
+  "votingEndsAt": "2026-01-08T23:59:59+01:00",
+  "lumaUrl": "https://lu.ma/...",
+  "featured": false,
+  "projects": [
+    {
+      "id": "projekt-id",
+      "name": "App-Name",
+      "description": "One-Liner Beschreibung, max 140 Zeichen.",
+      "team": ["Vorname1", "Vorname2"],
+      "tool": "Lovable",
+      "appUrl": "https://app.lovable.app",
+      "screenshotPath": "/screenshots/event-slug/projekt-id.png",
+      "demoVideoUrl": null
+    }
+  ]
+}

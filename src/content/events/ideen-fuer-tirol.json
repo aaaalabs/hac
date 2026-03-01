@@ -1,0 +1,73 @@
+{
+  "slug": "ideen-fuer-tirol",
+  "title": "Ideen für Tirol",
+  "date": "2026-03-24",
+  "location": "WIFI Tirol, Innsbruck",
+  "description": "Der erste AI Collective Innsbruck Buildathon im Rahmen der Tiroler Innovationswoche.",
+  "participantCount": 40,
+  "votingEndsAt": "2026-03-31T23:59:59+01:00",
+  "lumaUrl": "https://lu.ma/aic-innsbruck",
+  "featured": true,
+  "projects": [
+    {
+      "id": "tirolguide-ai",
+      "name": "TirolGuide AI",
+      "description": "KI-Reiseassistent für personalisierte Ausflugstipps in Tirol.",
+      "team": ["Anna", "Markus", "Lena"],
+      "tool": "Lovable",
+      "appUrl": "https://tirolguide.lovable.app",
+      "screenshotPath": "/screenshots/ideen-fuer-tirol/tirolguide-ai.png",
+      "demoVideoUrl": null
+    },
+    {
+      "id": "gruender-buddy",
+      "name": "Gründer-Buddy",
+      "description": "Chatbot der durch den Tiroler Förderdschungel navigiert.",
+      "team": ["Stefan", "Julia"],
+      "tool": "Bolt",
+      "appUrl": "https://gruender-buddy.vercel.app",
+      "screenshotPath": "/screenshots/ideen-fuer-tirol/gruender-buddy.png",
+      "demoVideoUrl": null
+    },
+    {
+      "id": "skipass-optimizer",
+      "name": "SkiPass Optimizer",
+      "description": "Findet den günstigsten Skipass basierend auf deinen Gewohnheiten.",
+      "team": ["Michael", "Sarah", "Tom"],
+      "tool": "v0",
+      "appUrl": "https://skipass-optimizer.vercel.app",
+      "screenshotPath": "/screenshots/ideen-fuer-tirol/skipass-optimizer.png",
+      "demoVideoUrl": null
+    },
+    {
+      "id": "mein-tiroler-rezept",
+      "name": "Mein Tiroler Rezept",
+      "description": "Generiert traditionelle Tiroler Rezepte mit deinen Zutaten.",
+      "team": ["Lisa", "David"],
+      "tool": "Lovable",
+      "appUrl": "https://tiroler-rezept.lovable.app",
+      "screenshotPath": "/screenshots/ideen-fuer-tirol/mein-tiroler-rezept.png",
+      "demoVideoUrl": null
+    },
+    {
+      "id": "pendlerpilot",
+      "name": "PendlerPilot",
+      "description": "Optimiert deinen Arbeitsweg in Innsbruck mit Echtzeit-Daten.",
+      "team": ["Andreas", "Nina", "Felix"],
+      "tool": "Cursor",
+      "appUrl": "https://pendlerpilot.vercel.app",
+      "screenshotPath": "/screenshots/ideen-fuer-tirol/pendlerpilot.png",
+      "demoVideoUrl": null
+    },
+    {
+      "id": "verein-ai",
+      "name": "Verein.ai",
+      "description": "Hilft Tiroler Vereinen bei Förderanträgen und Verwaltung.",
+      "team": ["Kathrin", "Lukas"],
+      "tool": "Bolt",
+      "appUrl": "https://verein-ai.vercel.app",
+      "screenshotPath": "/screenshots/ideen-fuer-tirol/verein-ai.png",
+      "demoVideoUrl": null
+    }
+  ]
+}
