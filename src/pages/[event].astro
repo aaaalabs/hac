@@ -112,9 +112,6 @@ const pageDescription = `${event.title} am ${dateFormatted} in ${event.location}
   const btnVotes = document.getElementById('sort-votes')!;
   const btnRandom = document.getElementById('sort-random')!;
 
-  const activeClasses = ['border-[var(--orange)]', 'text-[var(--orange)]', 'bg-[var(--orange-subtle)]'];
-  const inactiveClasses = ['border-[var(--mid-gray)]', 'text-[var(--text-muted)]'];
-
   function setActive(active: HTMLElement, inactive: HTMLElement) {
     active.style.borderColor = 'var(--orange)';
     active.style.color = 'var(--orange)';

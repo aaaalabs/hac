@@ -52,13 +52,15 @@ export async function loadAllEvents(): Promise<AicEvent[]> {
   const files = await readdir(EVENTS_DIR);
   const events = await Promise.all(
     files
-      .filter(f => f.endsWith('.json') && !f.startsWith('_'))
+      .filter((f: string) => f.endsWith('.json') && !f.startsWith('_'))
       .map(
-        async f =>
+        async (f: string) =>
           JSON.parse(await readFile(join(EVENTS_DIR, f), 'utf-8')) as AicEvent,
       ),
   );
-  return events.sort((a, b) => b.date.localeCompare(a.date));
+  return events.sort((a: AicEvent, b: AicEvent) =>
+    b.date.localeCompare(a.date),
+  );
 }
 
 export async function loadEvent(slug: string): Promise<AicEvent | null> {
