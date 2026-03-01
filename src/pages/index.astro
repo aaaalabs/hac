@@ -1,9 +1,53 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import EventCard from '../components/EventCard.astro';
+import { loadAllEvents } from '../lib/events';
+
+const events = await loadAllEvents();
 ---
 
-<BaseLayout title="hac.kinn.at - Prototypen aus AI Collective Innsbruck" description="Schau was Leute in 4 Stunden mit KI bauen.">
-  <main id="main-content" class="max-w-[1200px] mx-auto px-4 py-12">
-    <h1>hac.kinn.at</h1>
+<BaseLayout
+  title="hac.kinn.at - Prototypen aus AI Collective Innsbruck"
+  description="Schau was Leute in 4 Stunden mit KI bauen. Prototypen aus AI Collective Innsbruck Events - ausprobieren und voten."
+>
+  <Header />
+  <main id="main-content" class="max-w-[1200px] mx-auto px-4 sm:px-6 py-12">
+
+    <!-- Hero -->
+    <div class="mb-12">
+      <h1 class="text-4xl sm:text-5xl font-black text-[var(--dark-2)] leading-tight">
+        Schau was Leute<br class="hidden sm:block" />
+        in 4 Stunden bauen.
+      </h1>
+      <p class="mt-4 text-lg text-[var(--text-muted)] max-w-2xl leading-relaxed">
+        Prototypen aus AI Collective
+        <span class="text-[var(--orange)] font-semibold">Innsbruck</span>
+        Events - gebaut mit KI, bewertet von der Community.
+      </p>
+    </div>
+
+    <!-- Event-Liste -->
+    {events.length === 0 ? (
+      <div class="text-center py-24 text-[var(--text-muted)]">
+        <p class="text-xl font-medium mb-2">Noch keine Events.</p>
+        <p class="mb-6">Das erste kommt bald - bleib dran!</p>
+        <a
+          href="https://lu.ma/aic-innsbruck"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white"
+          style="background: var(--orange);"
+        >
+          Zum nächsten Event →
+        </a>
+      </div>
+    ) : (
+      <div class="flex flex-col gap-4">
+        {events.map(event => <EventCard event={event} />)}
+      </div>
+    )}
   </main>
+  <Footer />
 </BaseLayout>

@@ -1,0 +1,76 @@
+---
+import type { AicEvent } from '../lib/events';
+import VotingBadge from './VotingBadge.astro';
+import { isVotingOpen } from '../lib/events';
+
+interface Props {
+  event: AicEvent;
+}
+const { event } = Astro.props;
+
+const votingOpen = isVotingOpen(event);
+const dateFormatted = new Date(event.date).toLocaleDateString('de-AT', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+---
+
+<a
+  href={`/${event.slug}`}
+  class:list={[
+    'group block rounded-2xl border bg-white p-6 sm:p-8 card-hover transition-all',
+    event.featured
+      ? 'border-[var(--orange)] shadow-[0_0_0_1px_var(--orange),0_4px_24px_var(--orange-glow)]'
+      : 'border-[var(--mid-gray)] hover:border-[var(--orange)]',
+  ]}
+>
+  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        {event.featured && (
+          <span class="text-xs font-semibold uppercase tracking-widest text-[var(--orange)]">
+            Aktuell
+          </span>
+        )}
+        <VotingBadge votingOpen={votingOpen} />
+      </div>
+
+      <h2 class="text-xl sm:text-2xl font-bold text-[var(--dark-2)] group-hover:text-[var(--orange)] transition-colors">
+        {event.title}
+      </h2>
+
+      <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--text-muted)]">
+        <span>{dateFormatted}</span>
+        <span>·</span>
+        <span>{event.location}</span>
+        {event.participantCount && (
+          <>
+            <span>·</span>
+            <span>{event.participantCount} Teilnehmer</span>
+          </>
+        )}
+      </div>
+
+      {event.description && (
+        <p class="mt-3 text-sm text-[var(--dark)] leading-relaxed line-clamp-2">
+          {event.description}
+        </p>
+      )}
+    </div>
+
+    <div class="flex sm:flex-col items-center sm:items-end gap-4 sm:gap-2 shrink-0">
+      <div class="text-center">
+        <div class="text-2xl font-black text-[var(--orange)]">
+          {event.projects.length}
+        </div>
+        <div class="text-xs text-[var(--text-muted)] uppercase tracking-wide font-medium">
+          {event.projects.length === 1 ? 'Prototyp' : 'Prototypen'}
+        </div>
+      </div>
+      <span class="text-sm font-medium text-[var(--blue)] group-hover:translate-x-1 transition-transform inline-block">
+        Ansehen →
+      </span>
+    </div>
+  </div>
+</a>
