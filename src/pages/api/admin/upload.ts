@@ -16,6 +16,7 @@ export const POST: APIRoute = async ({ request }) => {
   const blob = await put(`screenshots/${eventSlug}/${projectId}.${ext}`, file, {
     access: 'public',
     addRandomSuffix: false,
+    token: import.meta.env.BLOB_READ_WRITE_TOKEN,
   });
 
   return Response.json({ url: blob.url });

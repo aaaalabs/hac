@@ -5,6 +5,10 @@ import { loadAllEvents } from '../../lib/events';
 
 const events = await loadAllEvents();
 const eventOptions = events.map(e => ({ slug: e.slug, title: e.title }));
+const eventsWithProjects = events.map(e => ({
+  slug: e.slug,
+  projects: e.projects.map(p => ({ id: p.id, name: p.name })),
+}));
 ---
 
 <BaseLayout title="Admin – hac.kinn.at" description="Admin" noindex={true}>
@@ -29,20 +33,20 @@ const eventOptions = events.map(e => ({ slug: e.slug, title: e.title }));
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Event</label>
-            <select name="eventSlug" required class="admin-input">
+            <select id="upload-event" name="eventSlug" required class="admin-input">
               {eventOptions.map(e => <option value={e.slug}>{e.title}</option>)}
             </select>
           </div>
           <div>
-            <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Project ID</label>
-            <input name="projectId" type="text" required placeholder="mein-projekt" class="admin-input" />
+            <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Projekt</label>
+            <select id="upload-project" name="projectId" required class="admin-input"></select>
           </div>
         </div>
         <div>
           <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Bild</label>
           <input name="file" type="file" accept="image/*" required class="admin-input file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-[var(--light-gray)] file:text-[var(--dark)]" />
         </div>
-        <button type="submit" class="admin-btn-primary">Hochladen</button>
+        <button id="upload-btn" type="submit" class="admin-btn-primary">Hochladen</button>
         <p id="upload-result" class="text-xs font-mono bg-[var(--light-gray)] rounded-lg px-3 py-2 hidden break-all"></p>
       </form>
     </section>
@@ -191,7 +195,43 @@ const eventOptions = events.map(e => ({ slug: e.slug, title: e.title }));
   }
 </style>
 
+<script id="events-data" type="application/json" set:html={JSON.stringify(eventsWithProjects)}></script>
+
 <script>
+  // Project data from server
+  const eventsData: { slug: string; projects: { id: string; name: string }[] }[] =
+    JSON.parse(document.getElementById('events-data')!.textContent!);
+
+  function getProjects(slug: string) {
+    return eventsData.find(e => e.slug === slug)?.projects ?? [];
+  }
+
+  function populateProjectSelect(select: HTMLSelectElement, eventSlug: string) {
+    const projects = getProjects(eventSlug);
+    select.innerHTML = '';
+    if (projects.length === 0) {
+      const opt = new Option('Keine Projekte vorhanden', '');
+      opt.disabled = true;
+      opt.selected = true;
+      select.appendChild(opt);
+      select.disabled = true;
+    } else {
+      select.disabled = false;
+      projects.forEach(p => select.appendChild(new Option(`${p.name} (${p.id})`, p.id)));
+    }
+    // Keep upload button in sync
+    const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
+    if (uploadBtn) uploadBtn.disabled = projects.length === 0;
+  }
+
+  // Init upload project dropdown
+  const uploadEventSel = document.getElementById('upload-event') as HTMLSelectElement;
+  const uploadProjectSel = document.getElementById('upload-project') as HTMLSelectElement;
+  populateProjectSelect(uploadProjectSel, uploadEventSel.value);
+  uploadEventSel.addEventListener('change', () =>
+    populateProjectSelect(uploadProjectSel, uploadEventSel.value)
+  );
+
   // Logout
   document.getElementById('logout-btn')!.addEventListener('click', async () => {
     await fetch('/api/admin/logout', { method: 'POST' }).catch(() => {});
@@ -220,7 +260,7 @@ const eventOptions = events.map(e => ({ slug: e.slug, title: e.title }));
 
     const formData = new FormData(uploadForm);
     const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
-    const data = await res.json();
+    const data = res.ok ? await res.json() : { error: await res.text().catch(() => `HTTP ${res.status}`) };
 
     setLoading(btn, false, 'Hochladen');
     if (res.ok) {
