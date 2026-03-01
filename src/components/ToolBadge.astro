@@ -1,0 +1,13 @@
+---
+interface Props {
+  tool: string;
+}
+const { tool } = Astro.props;
+---
+
+<span
+  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-white"
+  style="background: var(--blue-inst); letter-spacing: 0.04em;"
+>
+  {tool}
+</span>
