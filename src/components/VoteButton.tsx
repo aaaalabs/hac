@@ -70,15 +70,6 @@ export default function VoteButton({
     );
   }
 
-  if (cooldown > 0) {
-    const mins = Math.ceil(cooldown / 60);
-    return (
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-[var(--mid-gray)] min-h-[44px] text-xs text-[var(--text-muted)]">
-        ⏳ {mins}min
-      </div>
-    );
-  }
-
   return (
     <button
       onClick={handleVote}
