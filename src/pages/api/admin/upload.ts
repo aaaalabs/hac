@@ -21,6 +21,7 @@ export const POST: APIRoute = async ({ request }) => {
     const blob = await put(`screenshots/${eventSlug}/${projectId}.${ext}`, buffer, {
       access: 'public',
       addRandomSuffix: false,
+      allowOverwrite: true,
       contentType: contentType ?? 'image/png',
       token,
     });
