@@ -100,7 +100,7 @@ const eventOptions = events.map(e => ({ slug: e.slug, title: e.title }));
           <label class="block text-xs font-medium text-[var(--text-muted)] mb-1">Demo Video URL (optional)</label>
           <input name="demoVideoUrl" type="url" placeholder="https://..." class="admin-input" />
         </div>
-        <button type="submit" class="admin-btn-primary">Speichern → GitHub commit</button>
+        <button type="submit" class="admin-btn-primary">Speichern</button>
         <p id="project-result" class="text-xs hidden"></p>
       </form>
     </section>
@@ -149,7 +149,7 @@ const eventOptions = events.map(e => ({ slug: e.slug, title: e.title }));
           <input name="featured" type="checkbox" class="rounded" />
           Featured (orange Akzent auf Landing Page)
         </label>
-        <button type="submit" class="admin-btn-primary">Anlegen → GitHub commit</button>
+        <button type="submit" class="admin-btn-primary">Anlegen</button>
         <p id="event-result" class="text-xs hidden"></p>
       </form>
     </section>
@@ -265,7 +265,7 @@ const eventOptions = events.map(e => ({ slug: e.slug, title: e.title }));
     const data = await res.json();
 
     setLoading(btn, false, 'Speichern → GitHub commit');
-    showResult(result, res.ok ? `✓ "${project.name}" hinzugefügt — Vercel deployt in ~30s` : `✗ Fehler: ${data.error}`, res.ok);
+    showResult(result, res.ok ? `✓ "${project.name}" hinzugefügt — sofort live` : `✗ Fehler: ${data.error}`, res.ok);
     if (res.ok) projectForm.reset();
   });
 
@@ -301,7 +301,7 @@ const eventOptions = events.map(e => ({ slug: e.slug, title: e.title }));
     const data = await res.json();
 
     setLoading(btn, false, 'Anlegen → GitHub commit');
-    showResult(result, res.ok ? `✓ Event "${event.title}" angelegt — Vercel deployt in ~30s` : `✗ Fehler: ${data.error}`, res.ok);
+    showResult(result, res.ok ? `✓ Event "${event.title}" angelegt — sofort live` : `✗ Fehler: ${data.error}`, res.ok);
     if (res.ok) eventForm.reset();
   });
 </script>

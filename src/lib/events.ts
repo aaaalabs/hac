@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { kv } from '@vercel/kv';
 
 export interface Project {
   id: string;
@@ -48,22 +49,7 @@ export function shuffleProjects(projects: Project[]): Project[] {
 
 const EVENTS_DIR = join(process.cwd(), 'src', 'content', 'events');
 
-export async function loadAllEvents(): Promise<AicEvent[]> {
-  const files = await readdir(EVENTS_DIR);
-  const events = await Promise.all(
-    files
-      .filter((f: string) => f.endsWith('.json') && !f.startsWith('_'))
-      .map(
-        async (f: string) =>
-          JSON.parse(await readFile(join(EVENTS_DIR, f), 'utf-8')) as AicEvent,
-      ),
-  );
-  return events.sort((a: AicEvent, b: AicEvent) =>
-    b.date.localeCompare(a.date),
-  );
-}
-
-export async function loadEvent(slug: string): Promise<AicEvent | null> {
+async function readJsonFile(slug: string): Promise<AicEvent | null> {
   try {
     return JSON.parse(
       await readFile(join(EVENTS_DIR, `${slug}.json`), 'utf-8'),
@@ -73,9 +59,48 @@ export async function loadEvent(slug: string): Promise<AicEvent | null> {
   }
 }
 
+async function getKvSlugs(): Promise<string[]> {
+  try {
+    return (await kv.get<string[]>('kv_event_slugs')) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function loadAllEvents(): Promise<AicEvent[]> {
+  // Filesystem slugs
+  let fsSlugs: string[] = [];
+  try {
+    const files = await readdir(EVENTS_DIR);
+    fsSlugs = files
+      .filter((f: string) => f.endsWith('.json') && !f.startsWith('_'))
+      .map((f: string) => f.replace('.json', ''));
+  } catch {}
+
+  // KV-only slugs (admin-created events not in repo)
+  const kvSlugs = await getKvSlugs();
+  const allSlugs = [...new Set([...fsSlugs, ...kvSlugs])];
+
+  const events = await Promise.all(allSlugs.map((slug) => loadEvent(slug)));
+  return events
+    .filter((e): e is AicEvent => e !== null)
+    .sort((a: AicEvent, b: AicEvent) => b.date.localeCompare(a.date));
+}
+
+export async function loadEvent(slug: string): Promise<AicEvent | null> {
+  // KV first — admin changes live here
+  try {
+    const kvEvent = await kv.get<AicEvent>(`event:${slug}`);
+    if (kvEvent) return kvEvent;
+  } catch {}
+
+  // Fallback to filesystem (seed data)
+  return readJsonFile(slug);
+}
+
 export function findProject(
   event: AicEvent,
   id: string,
 ): Project | undefined {
-  return event.projects.find(p => p.id === id);
+  return event.projects.find((p) => p.id === id);
 }

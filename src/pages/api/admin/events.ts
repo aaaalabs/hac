@@ -1,7 +1,8 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
 import type { AicEvent } from '../../../lib/events';
-import { getJsonFile, putJsonFile } from '../../../lib/github';
+import { loadEvent } from '../../../lib/events';
+import { kv } from '@vercel/kv';
 
 export const POST: APIRoute = async ({ request }) => {
   const event = (await request.json()) as AicEvent;
@@ -10,15 +11,15 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ error: 'missing_fields' }, { status: 400 });
   }
 
-  const path = `src/content/events/${event.slug}.json`;
-
-  // Don't overwrite existing events
-  const existing = await getJsonFile(path);
+  const existing = await loadEvent(event.slug);
   if (existing) return Response.json({ error: 'slug_exists' }, { status: 409 });
 
   const newEvent: AicEvent = { ...event, projects: [] };
+  await kv.set(`event:${event.slug}`, newEvent);
 
-  const ok = await putJsonFile(path, newEvent, `feat: add event "${event.title}"`);
-  if (!ok) return Response.json({ error: 'github_error' }, { status: 500 });
+  // Track KV-only slugs for loadAllEvents()
+  const slugs = (await kv.get<string[]>('kv_event_slugs')) ?? [];
+  await kv.set('kv_event_slugs', [...slugs, event.slug]);
+
   return Response.json({ ok: true });
 };

@@ -1,7 +1,8 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
-import type { AicEvent, Project } from '../../../lib/events';
-import { getJsonFile, putJsonFile } from '../../../lib/github';
+import type { Project } from '../../../lib/events';
+import { loadEvent } from '../../../lib/events';
+import { kv } from '@vercel/kv';
 
 export const POST: APIRoute = async ({ request }) => {
   const body = await request.json();
@@ -11,25 +12,15 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ error: 'missing_fields' }, { status: 400 });
   }
 
-  const path = `src/content/events/${eventSlug}.json`;
-  const file = await getJsonFile<AicEvent>(path);
-  if (!file) return Response.json({ error: 'event_not_found' }, { status: 404 });
-
-  const { data: event, sha } = file;
+  const event = await loadEvent(eventSlug);
+  if (!event) return Response.json({ error: 'event_not_found' }, { status: 404 });
 
   if (event.projects.some((p) => p.id === project.id)) {
     return Response.json({ error: 'project_id_exists' }, { status: 409 });
   }
 
   event.projects.push(project);
+  await kv.set(`event:${eventSlug}`, event);
 
-  const ok = await putJsonFile(
-    path,
-    event,
-    `feat: add project "${project.name}" to ${eventSlug}`,
-    sha,
-  );
-
-  if (!ok) return Response.json({ error: 'github_error' }, { status: 500 });
   return Response.json({ ok: true });
 };
