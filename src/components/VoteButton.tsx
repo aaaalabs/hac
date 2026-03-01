@@ -20,10 +20,9 @@ export default function VoteButton({
   const [count, setCount] = useState(initialCount);
   const [hasVoted, setHasVoted] = useState(initialHasVoted);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [cooldown, setCooldown] = useState(0);
 
   async function handleVote() {
-    if (!votingOpen || hasVoted || cooldown > 0) return;
+    if (!votingOpen || hasVoted) return;
 
     // Optimistic update
     setCount(c => c + 1);
@@ -40,10 +39,7 @@ export default function VoteButton({
       const data = await res.json();
 
       if (res.status === 429) {
-        // Rate limited — rollback + show countdown
-        setCount(c => c - 1);
-        setHasVoted(false);
-        startCooldown(data.retryAfter ?? 300);
+        // Rate limited — silently keep optimistic "voted" state, don't reveal cooldown
         return;
       }
 
@@ -63,16 +59,6 @@ export default function VoteButton({
       setCount(c => c - 1);
       setHasVoted(false);
     }
-  }
-
-  function startCooldown(seconds: number) {
-    setCooldown(seconds);
-    const interval = setInterval(() => {
-      setCooldown(s => {
-        if (s <= 1) { clearInterval(interval); return 0; }
-        return s - 1;
-      });
-    }, 1000);
   }
 
   if (!votingOpen) {
