@@ -1,1 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --color-orange: #F97316;
+  --color-orange-deep: #EA6A0A;
+  --color-orange-accent: #FF915A;
+  --color-blue-aic: #0076db;
+  --color-blue-inst: #4f79ae;
+  --color-dark: #374151;
+  --color-dark-2: #1f2937;
+  --color-green-aic: #428c38;
+  --color-off-white: #F9FAFB;
+  --color-light-gray: #F3F4F6;
+  --color-mid-gray: #E5E7EB;
+  --color-text-muted: #6B7280;
+
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+  --max-width-container: 1200px;
+}
+
+:root {
+  --orange: #F97316;
+  --orange-deep: #EA6A0A;
+  --orange-accent: #FF915A;
+  --blue: #0076db;
+  --blue-inst: #4f79ae;
+  --dark: #374151;
+  --dark-2: #1f2937;
+  --green: #428c38;
+  --white: #ffffff;
+  --off-white: #F9FAFB;
+  --light-gray: #F3F4F6;
+  --mid-gray: #E5E7EB;
+  --text-muted: #6B7280;
+  --orange-glow: rgba(249, 115, 22, 0.12);
+  --orange-subtle: rgba(249, 115, 22, 0.06);
+  --blue-glow: rgba(0, 118, 219, 0.10);
+  --blue-subtle: rgba(0, 118, 219, 0.05);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--off-white);
+  color: var(--dark);
+  -webkit-font-smoothing: antialiased;
+}
+
+.bg-aic-gradient {
+  background:
+    radial-gradient(circle at 15% 25%, var(--orange-subtle), transparent 50%),
+    radial-gradient(circle at 85% 75%, var(--blue-subtle), transparent 50%),
+    var(--off-white);
+}
+
+h1, h2, h3, h4 {
+  letter-spacing: -0.02em;
+  color: var(--dark-2);
+}
+
+:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.card-hover { transition: transform 200ms ease, box-shadow 200ms ease; }
+.card-hover:hover { transform: scale(1.02); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08); }
+
+@keyframes vote-pop {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.95); }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+.animate-vote-pop { animation: vote-pop 300ms ease-out forwards; }
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  opacity: 0;
+  animation: fade-in-up 400ms ease-out forwards;
+}
