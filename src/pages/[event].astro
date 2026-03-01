@@ -45,8 +45,11 @@ const pageDescription = `${event.title} am ${dateFormatted} in ${event.location}
 
     <!-- Event-Header -->
     <div class="mb-6 sm:mb-10">
-      <a href="/" class="inline-flex items-center gap-1 text-sm text-[var(--text-muted)] hover:text-[var(--orange)] transition-colors mb-4">
-        ← Alle Events
+      <a href="/" class="inline-flex items-center gap-1 text-sm text-[var(--text-muted)] hover:text-[var(--orange)] transition-colors mb-4 hover:-translate-x-0.5 group">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Alle Events
       </a>
       <div class="flex flex-wrap items-center gap-3 mb-3">
         <VotingBadge votingOpen={votingOpen} />
