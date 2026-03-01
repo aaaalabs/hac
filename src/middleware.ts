@@ -5,7 +5,7 @@ function sessionToken(password: string): string {
   return createHash('sha256').update(`${password}:admin_session`).digest('hex');
 }
 
-export const onRequest = defineMiddleware(async ({ url, cookies }, next) => {
+export const onRequest = defineMiddleware(async ({ url, request, cookies }, next) => {
   const path = url.pathname;
 
   // Login page and login API are always public
@@ -19,7 +19,10 @@ export const onRequest = defineMiddleware(async ({ url, cookies }, next) => {
       if (path.startsWith('/api/')) {
         return Response.json({ error: 'unauthorized' }, { status: 401 });
       }
-      return Response.redirect(new URL('/admin/login', url));
+      // Use forwarded host to avoid localhost redirects on Vercel
+      const host = request.headers.get('x-forwarded-host') ?? url.host;
+      const proto = request.headers.get('x-forwarded-proto') ?? url.protocol.replace(':', '');
+      return Response.redirect(`${proto}://${host}/admin/login`);
     }
   }
 
