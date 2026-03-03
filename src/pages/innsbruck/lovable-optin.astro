@@ -278,7 +278,10 @@ const event = EVENTS[eventSlug];
         return;
       }
 
-      errorMsg.textContent = 'Etwas ist schiefgelaufen. Bitte versuch es nochmal.';
+      const msg = res.status === 429
+        ? 'Zu viele Versuche — bitte warte kurz und versuch es nochmal.'
+        : 'Etwas ist schiefgelaufen. Bitte versuch es nochmal.';
+      errorMsg.textContent = msg;
       errorMsg.classList.remove('hidden');
     } catch {
       errorMsg.textContent = 'Netzwerkfehler. Bitte versuch es nochmal.';

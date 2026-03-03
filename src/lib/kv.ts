@@ -42,7 +42,7 @@ export async function recordVote(
   return newCount;
 }
 
-const RATE_LIMIT_SECONDS = 5 * 60;
+const RATE_LIMIT_SECONDS = 60 * 60;
 
 export async function isRateLimited(ip: string): Promise<number> {
   const ttl = await kv.ttl(`ratelimit:${ip}`);
