@@ -26,6 +26,19 @@ const eventsWithProjects = events.map(e => ({
       </button>
     </div>
 
+    <!-- Tab Navigation -->
+    <div class="flex gap-1 mb-6 bg-[var(--light-gray)] p-1 rounded-xl">
+      <button id="tab-btn-events" class="tab-btn active flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all">
+        Events & Projekte
+      </button>
+      <button id="tab-btn-lovable" class="tab-btn flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all">
+        💌 Lovable Opt-ins
+      </button>
+    </div>
+
+    <!-- Tab: Events & Projekte -->
+    <div id="tab-events" class="tab-content">
+
     <!-- Section 1: Screenshot Upload -->
     <section class="bg-white rounded-2xl border border-[var(--mid-gray)] p-6 mb-6">
       <h2 class="text-base font-bold text-[var(--dark-2)] mb-4">📸 Screenshot hochladen</h2>
@@ -158,6 +171,44 @@ const eventsWithProjects = events.map(e => ({
       </form>
     </section>
 
+    </div> <!-- /tab-events -->
+
+    <!-- Tab: Lovable Opt-ins -->
+    <div id="tab-lovable" class="tab-content hidden">
+      <section class="bg-white rounded-2xl border border-[var(--mid-gray)] p-6">
+        <!-- Event selector -->
+        <div class="flex gap-2 mb-5">
+          <button id="event-sel-buildathon-zero" class="event-sel-btn active text-xs py-1.5 px-3 rounded-lg border font-semibold transition-all" data-event="buildathon-zero">
+            Buildathon Zero
+          </button>
+          <button id="event-sel-ideen-fuer-tirol" class="event-sel-btn text-xs py-1.5 px-3 rounded-lg border font-semibold transition-all" data-event="ideen-fuer-tirol">
+            Ideen für Tirol
+          </button>
+        </div>
+        <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center gap-3">
+            <h2 class="text-base font-bold text-[var(--dark-2)]">💌 Lovable Opt-ins</h2>
+            <span id="optin-count" class="text-xs bg-orange-50 text-[var(--orange)] border border-orange-200 px-2 py-0.5 rounded-full font-semibold hidden"></span>
+          </div>
+          <button id="csv-btn" class="admin-btn-primary text-xs py-1.5 px-3 hidden">↓ CSV</button>
+        </div>
+        <p id="optin-loading" class="text-sm text-[var(--text-muted)] text-center py-6">Lädt…</p>
+        <p id="optin-empty" class="hidden text-sm text-[var(--text-muted)] text-center py-6">Noch keine Eintragungen.</p>
+        <div id="optin-table-wrap" class="hidden overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-[var(--mid-gray)]">
+                <th class="text-left text-xs font-semibold text-[var(--text-muted)] pb-2 pr-6">Name</th>
+                <th class="text-left text-xs font-semibold text-[var(--text-muted)] pb-2 pr-6">E-Mail</th>
+                <th class="text-left text-xs font-semibold text-[var(--text-muted)] pb-2">Datum</th>
+              </tr>
+            </thead>
+            <tbody id="optin-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div> <!-- /tab-lovable -->
+
   </main>
 </BaseLayout>
 
@@ -192,6 +243,30 @@ const eventsWithProjects = events.map(e => ({
   .admin-btn-primary:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+  .tab-btn {
+    color: var(--text-muted);
+    background: transparent;
+    cursor: pointer;
+  }
+  .tab-btn.active {
+    background: white;
+    color: var(--dark-2);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .tab-content.hidden { display: none; }
+  #optin-tbody tr:hover td { background: var(--light-gray); }
+  #optin-tbody td { padding: 0.6rem 1.5rem 0.6rem 0; border-bottom: 1px solid var(--light-gray); }
+  .event-sel-btn {
+    background: white;
+    border-color: var(--mid-gray);
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .event-sel-btn.active {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: white;
   }
 </style>
 
@@ -354,6 +429,96 @@ const eventsWithProjects = events.map(e => ({
     setLoading(btn, false, 'Speichern → GitHub commit');
     showResult(result, res.ok ? `✓ "${project.name}" hinzugefügt — sofort live` : `✗ Fehler: ${data.error}`, res.ok);
     if (res.ok) projectForm.reset();
+  });
+
+  // Tab switching
+  type OptinEntry = { name: string; email: string; timestamp: string };
+  let optinData: OptinEntry[] = [];
+  let currentEventSlug = 'buildathon-zero';
+
+  function activateTab(tab: 'events' | 'lovable') {
+    document.getElementById('tab-events')!.classList.toggle('hidden', tab !== 'events');
+    document.getElementById('tab-lovable')!.classList.toggle('hidden', tab !== 'lovable');
+    document.getElementById('tab-btn-events')!.classList.toggle('active', tab === 'events');
+    document.getElementById('tab-btn-lovable')!.classList.toggle('active', tab === 'lovable');
+    if (tab === 'lovable') loadOptins(currentEventSlug);
+  }
+
+  document.getElementById('tab-btn-events')!.addEventListener('click', () => activateTab('events'));
+  document.getElementById('tab-btn-lovable')!.addEventListener('click', () => activateTab('lovable'));
+
+  // Event selector buttons
+  document.querySelectorAll<HTMLButtonElement>('.event-sel-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.event-sel-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentEventSlug = btn.dataset.event!;
+      loadOptins(currentEventSlug);
+    });
+  });
+
+  async function loadOptins(eventSlug: string) {
+    const loading = document.getElementById('optin-loading')!;
+    const empty = document.getElementById('optin-empty')!;
+    const tableWrap = document.getElementById('optin-table-wrap')!;
+    const tbody = document.getElementById('optin-tbody')!;
+    const countBadge = document.getElementById('optin-count')!;
+    const csvBtn = document.getElementById('csv-btn')!;
+
+    // Reset state
+    loading.classList.remove('hidden');
+    empty.classList.add('hidden');
+    tableWrap.classList.add('hidden');
+    countBadge.classList.add('hidden');
+    csvBtn.classList.add('hidden');
+    tbody.innerHTML = '';
+
+    try {
+      const res = await fetch(`/api/admin/optin-lovable?event=${eventSlug}`);
+      optinData = await res.json();
+      loading.classList.add('hidden');
+
+      if (optinData.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      // Sort newest first
+      optinData.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      optinData.forEach(entry => {
+        const tr = document.createElement('tr');
+        const date = new Date(entry.timestamp).toLocaleString('de-AT', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit',
+        });
+        tr.innerHTML = `
+          <td class="font-medium text-[var(--dark-2)]">${entry.name}</td>
+          <td><a href="mailto:${entry.email}" class="text-[var(--blue-aic)] hover:underline">${entry.email}</a></td>
+          <td class="text-[var(--text-muted)] text-xs">${date}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      countBadge.textContent = `${optinData.length} Einträge`;
+      countBadge.classList.remove('hidden');
+      csvBtn.classList.remove('hidden');
+      tableWrap.classList.remove('hidden');
+    } catch {
+      loading.textContent = 'Fehler beim Laden.';
+    }
+  }
+
+  document.getElementById('csv-btn')!.addEventListener('click', () => {
+    const header = 'Name,E-Mail,Datum\n';
+    const rows = optinData.map(e =>
+      `"${e.name.replace(/"/g, '""')}","${e.email}","${new Date(e.timestamp).toISOString()}"`
+    ).join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `lovable-optins-${currentEventSlug}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
   });
 
   // Create Event

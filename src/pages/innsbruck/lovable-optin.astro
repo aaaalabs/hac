@@ -1,0 +1,292 @@
+---
+export const prerender = false;
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const EVENTS: Record<string, { title: string; date: string }> = {
+  'buildathon-zero':  { title: 'Buildathon Zero',  date: '6. März 2026' },
+  'ideen-fuer-tirol': { title: 'Ideen für Tirol',  date: '24. März 2026' },
+};
+
+const eventSlug = Astro.url.searchParams.get('event') ?? '';
+const event = EVENTS[eventSlug];
+---
+
+<BaseLayout
+  title={event ? `Lovable Credits – ${event.title}` : 'Lovable Credits'}
+  description={event ? `Trag dich ein und sichere dir 100 kostenlose Lovable Credits für den Buildathon am ${event.date}.` : ''}
+  noindex={true}
+>
+  <main id="main-content" class="lovable-bg min-h-screen flex flex-col items-center justify-center px-4 py-12">
+
+    {!event ? (
+      <!-- Error Card -->
+      <div class="glass-card w-full max-w-lg rounded-2xl overflow-hidden px-8 py-12 text-center">
+        <div class="text-5xl mb-4">⚠️</div>
+        <h1 class="text-xl font-bold mb-3" style="color: #ffffff;">Ungültiger Link</h1>
+        <p style="color: rgba(255,255,255,0.6);" class="leading-relaxed">
+          Bitte wende dich an den Veranstalter, um den korrekten Link zu erhalten.
+        </p>
+      </div>
+    ) : (
+      <!-- Card -->
+      <div class="glass-card w-full max-w-lg rounded-2xl overflow-hidden">
+
+        <!-- Header: Logos -->
+        <div class="px-8 pt-8 pb-6 flex items-center justify-center gap-5">
+          <!-- AIC Logo (orange — AIC brand, also echoes Lovable warm gradient) -->
+          <a href="/" aria-label="AI Collective Innsbruck">
+            <svg height="30" viewBox="0 0 700 844.38" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill="#F97316" d="M694.7,679.31l-149.94-137.92c-13.12-12.07-32.7-13.24-47.49-3.29-44.87,30.17-97.32,45.96-153.5,45.96-66.92,0-132.46-22.46-184.56-63.24C54.13,438.52,29.44,294.27,101.78,185.26c37.44-56.39,112.97-103.46,197.12-122.86,24.94-5.75,50.74-8.66,76.69-8.66,61.13,0,124.86,16.38,184.39,47.43l.31.16c16.09,9.03,31.38,19.42,45.5,30.9l11.09,9.01,3.33,2.7-3.16,2.9-93.9,86.38-1.93,1.78-2.32-1.23-9.26-4.92c-30.06-15.96-75.63-37.57-124.09-40.86-5.51-.37-11.1-.56-16.6-.56-28.53,0-57.1,4.97-83.76,15.21-23.25,8.93-55.5,24.02-70.53,44.86-3.12,4.32-4.69,10.14-2.68,15.07,2.36,5.79,9.07,8.84,15.32,8.74,10.28-.16,20.6-6.68,30.07-10.2,11.64-4.33,23.56-7.93,35.64-10.81,24.04-5.72,48.74-8.54,73.45-8.54,37.75,0,68.84,8.01,97.83,25.22,12.1,7.17,23.49,15.81,33.95,24.6,13.62,11.44,33.54,11.21,46.63-.83l149.97-137.96c6.75-6.21,6.88-16.82.31-23.2-13.34-12.95-27.49-25.04-42.26-36.07-13.29-9.92-27.33-19.25-41.72-27.72C539.11,23.37,454.31,0,372.39,0c-56.4,0-109.82,10.68-158.77,31.74C126.79,69.1,59.15,130.13,28.07,199.16,2.09,256.82-5.91,315.18,4.3,372.61c9.17,51.64,33.48,101.7,70.31,144.79,35.23,41.21,80.73,74.95,131.57,97.58,42.69,19.01,101.49,30.83,153.44,30.83,6.22-.07,12.33-.24,18.32-.52,47.63-2.8,91.56-16.68,130.58-41.23l9.53-6,2.4-1.51,2.09,1.92,97.19,89.4,3.4,3.12-3.78,2.65-12.69,8.89c-84.2,58.86-187.1,87.56-289.71,79.97-108.4-8.02-212.81-56.5-288.56-134.48-7.39-7.61-18.11-5.52-23.96.54-.31.32-.63.63-.92.98-.07.07-.13.15-.2.22-1.54,1.95-2.59,4.25-3.04,6.76-.52,2.92-.23,6.11,1.29,9.4.12.26.24.51.36.77,22.47,47.6,66.99,82.24,110.71,109.63,45.25,28.35,95.53,48.49,147.87,59.1,6.69,1.36,13.42,2.56,20.17,3.61.67.1,1.34.21,2.01.31,21.36,3.22,43.21,4.91,65.44,5,59.45-.25,122.27-13.82,181.31-37.43,62.22-24.88,120.24-60.87,165.52-104.32,6.22-5.97,6.54-15.3,1.16-21.69-.45-.54-.87-1.1-1.41-1.59Z"/>
+            </svg>
+          </a>
+
+          <span style="color: rgba(255,255,255,0.3); font-size:1.25rem; font-weight:300;">×</span>
+
+          <!-- Lovable Logo (white — as designed for dark backgrounds) -->
+          <a href="https://lovable.dev" target="_blank" rel="noopener noreferrer" aria-label="Lovable">
+          <svg viewBox="0 0 755 129" fill="none" xmlns="http://www.w3.org/2000/svg" style="height:24px;" color="#FCFBF8" aria-label="Lovable"><path fill="currentColor" d="M303.603 30.94c9.149 0 17.163 1.982 24.04 5.945 6.876 3.963 12.18 9.616 15.91 16.959 3.788 7.285 5.682 15.852 5.682 25.7 0 9.85-1.894 18.447-5.682 25.79-3.73 7.343-9.034 12.996-15.91 16.959-6.877 3.963-14.891 5.944-24.04 5.944-9.15 0-17.193-1.981-24.128-5.944-6.877-3.963-12.21-9.616-15.998-16.959-3.73-7.343-5.595-15.94-5.595-25.79 0-9.848 1.865-18.415 5.595-25.7 3.788-7.343 9.121-12.996 15.998-16.96 6.935-3.962 14.978-5.944 24.128-5.944Zm176.168 0c8.683 0 16.026 1.428 22.029 4.284 6.002 2.797 10.519 6.818 13.55 12.063 3.088 5.245 4.633 11.511 4.633 18.796v38.464c0 4.138.292 7.984.874 11.539.641 3.497 1.545 5.712 2.71 6.644v2.972H496.03c-.641-2.506-1.136-5.332-1.486-8.479-.116-1.04-.214-2.1-.298-3.178a32.537 32.537 0 0 1-2.149 2.828c-2.914 3.438-6.674 6.207-11.278 8.305-4.545 2.039-9.732 3.059-15.56 3.059-5.77 0-10.957-1.136-15.561-3.409-4.546-2.273-8.13-5.507-10.753-9.703-2.564-4.254-3.846-9.208-3.846-14.861 0-8.626 2.535-15.211 7.605-19.757 5.07-4.604 12.385-7.605 21.942-9.004l15.999-2.273c3.205-.467 5.74-1.05 7.605-1.749 1.865-.699 3.234-1.632 4.108-2.797.875-1.224 1.312-2.768 1.312-4.633 0-1.923-.524-3.672-1.573-5.245-.991-1.632-2.507-2.915-4.546-3.847-1.982-.99-4.4-1.486-7.256-1.486-4.546 0-8.189 1.195-10.928 3.585-2.739 2.33-4.225 5.536-4.458 9.615h-27.362c.233-6.178 2.098-11.656 5.595-16.435 3.555-4.837 8.479-8.596 14.773-11.277 6.294-2.68 13.58-4.02 21.856-4.02Zm78.465 15.936a31.342 31.342 0 0 1 3.148-4.92c2.797-3.556 6.206-6.267 10.227-8.132 4.022-1.923 8.538-2.884 13.55-2.884 7.518 0 14.046 1.952 19.582 5.857 5.537 3.905 9.792 9.529 12.764 16.872 2.972 7.285 4.458 15.94 4.458 25.964 0 9.965-1.516 18.62-4.546 25.963-3.031 7.285-7.372 12.879-13.025 16.784-5.595 3.905-12.151 5.857-19.669 5.857-5.012 0-9.5-.873-13.463-2.622-3.905-1.748-7.227-4.371-9.966-7.868a31.218 31.218 0 0 1-3.321-5.4v13.355h-26.227V.342h26.488v46.534ZM710.451 30.94c8.567 0 16.173 1.865 22.817 5.595 6.643 3.73 11.802 9.15 15.473 16.26 3.73 7.11 5.595 15.619 5.595 25.526 0 3.555-.03 6.382-.088 8.48h-63.814c.251 4.09 1.038 7.645 2.359 10.665 1.632 3.73 3.963 6.556 6.993 8.479 3.031 1.865 6.615 2.798 10.753 2.798 4.546 0 8.305-1.166 11.277-3.497 2.972-2.389 4.838-5.74 5.595-10.053h26.487c-.815 6.761-3.117 12.618-6.905 17.572-3.73 4.953-8.713 8.771-14.949 11.452-6.236 2.681-13.492 4.02-21.768 4.02-9.324 0-17.425-1.777-24.302-5.332-6.877-3.613-12.239-9.033-16.085-16.259-3.788-7.227-5.682-16.173-5.682-26.838 0-10.14 1.981-18.883 5.944-26.226 3.963-7.401 9.441-13.026 16.435-16.872 6.993-3.846 14.949-5.77 23.865-5.77Zm-502.536 69.546h32.087c23.362 0 20.196 25.163 20.189 25.216h-79.726V.342h27.45v100.144Zm185.126-2.03 19.101-64.981h27.362l-31.908 92.227h-29.46l-33.132-92.227h28.148l19.889 64.981Zm263.245 27.246h-26.488V.342h26.488v125.36ZM493.845 80.731a13.951 13.951 0 0 1-3.06 1.961c-2.04.991-4.808 1.836-8.305 2.536l-6.731 1.311c-4.487.874-7.868 2.214-10.141 4.02-2.214 1.807-3.322 4.343-3.322 7.606s1.195 5.857 3.584 7.78c2.39 1.924 5.45 2.886 9.18 2.886 3.73 0 7.022-.816 9.878-2.448 2.855-1.69 5.041-4.021 6.556-6.993 1.574-2.972 2.361-6.353 2.361-10.141v-8.518Zm82.662-29.597c-3.905 0-7.256 1.194-10.053 3.584-2.739 2.33-4.808 5.653-6.207 9.966-1.399 4.254-2.098 9.237-2.098 14.949 0 5.77.699 10.782 2.098 15.036s3.468 7.547 6.207 9.878c2.797 2.331 6.148 3.497 10.053 3.497 3.963 0 7.285-1.166 9.966-3.497 2.739-2.331 4.778-5.624 6.119-9.878 1.398-4.254 2.098-9.267 2.098-15.036 0-5.77-.7-10.782-2.098-15.036-1.341-4.255-3.38-7.548-6.119-9.88-2.681-2.389-6.003-3.583-9.966-3.583Zm-272.904.088c-3.847 0-7.169 1.078-9.966 3.234-2.739 2.098-4.838 5.274-6.295 9.528-1.457 4.196-2.185 9.383-2.185 15.56 0 6.178.728 11.395 2.185 15.65 1.457 4.254 3.556 7.459 6.295 9.616 2.797 2.097 6.119 3.146 9.966 3.146 3.846 0 7.138-1.049 9.877-3.146 2.74-2.157 4.837-5.334 6.294-9.53 1.457-4.254 2.186-9.5 2.186-15.735 0-9.266-1.602-16.289-4.808-21.068-3.205-4.837-7.722-7.255-13.549-7.255Zm406.237-1.137c-3.905 0-7.343.962-10.316 2.885-2.914 1.865-5.187 4.662-6.819 8.392-.893 2.117-1.532 4.477-1.918 7.081h36.494c-.261-3.3-.917-6.156-1.969-8.567-1.34-3.264-3.321-5.712-5.944-7.344-2.622-1.631-5.799-2.447-9.528-2.447Z"></path><mask id="_R_55apicsmcdiv9felb_-b" width="124" height="126" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="url(#_R_55apicsmcdiv9felb_-a)" fill-rule="evenodd" d="M37.3.343c20.43 0 36.991 16.605 36.991 37.088v14.095h12.31c20.43 0 36.991 16.605 36.991 37.088s-16.561 37.088-36.99 37.088H.31V37.431C.31 16.948 16.87.343 37.3.343Z" clip-rule="evenodd"></path></mask><g mask="url(#_R_55apicsmcdiv9felb_-b)"><g filter="url(#_R_55apicsmcdiv9felb_-c)"><circle cx="54.389" cy="67.257" r="83.452" fill="#4B73FF"></circle></g><g filter="url(#_R_55apicsmcdiv9felb_-d)"><ellipse cx="63.557" cy="21.462" fill="#FF66F4" rx="106.879" ry="83.452"></ellipse></g><g filter="url(#_R_55apicsmcdiv9felb_-e)"><ellipse cx="80.992" cy="5.757" fill="#FF0105" rx="83.452" ry="73.289"></ellipse></g><g filter="url(#_R_55apicsmcdiv9felb_-f)"><circle cx="65.043" cy="21.442" r="50.188" fill="#FE7B02"></circle></g></g><defs><filter id="_R_55apicsmcdiv9felb_-c" width="241.704" height="241.704" x="-66.463" y="-53.596" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"></feBlend><feGaussianBlur result="effect1_foregroundBlur" stdDeviation="18.7"></feGaussianBlur></filter><filter id="_R_55apicsmcdiv9felb_-d" width="288.559" height="241.704" x="-80.723" y="-99.39" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"></feBlend><feGaussianBlur result="effect1_foregroundBlur" stdDeviation="18.7"></feGaussianBlur></filter><filter id="_R_55apicsmcdiv9felb_-e" width="241.704" height="221.378" x="-39.86" y="-104.931" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"></feBlend><feGaussianBlur result="effect1_foregroundBlur" stdDeviation="18.7"></feGaussianBlur></filter><filter id="_R_55apicsmcdiv9felb_-f" width="175.176" height="175.176" x="-22.545" y="-66.146" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"></feBlend><feGaussianBlur result="effect1_foregroundBlur" stdDeviation="18.7"></feGaussianBlur></filter><linearGradient id="_R_55apicsmcdiv9felb_-a" x1="41.797" x2="79.356" y1="22.372" y2="125.655" gradientUnits="userSpaceOnUse"><stop offset=".025" stop-color="#FF8E63"></stop><stop offset=".56" stop-color="#FF7EB0"></stop><stop offset=".95" stop-color="#4B73FF"></stop></linearGradient></defs></svg>
+          </a>
+        </div>
+
+        <!-- Hero -->
+        <div class="px-8 pb-6 text-center">
+          <h1 class="text-2xl sm:text-3xl font-black leading-tight mb-3" style="color: #ffffff;">
+            Deine 100 Lovable Credits warten!
+          </h1>
+          <p class="leading-relaxed text-sm sm:text-base" style="color: rgba(255,255,255,0.6);">
+            Unser Partner <a href="https://lovable.dev" target="_blank" rel="noopener noreferrer" style="color: rgba(255,255,255,0.9); font-weight:600; text-decoration:none;">Lovable</a>
+            ermöglicht jedem Teilnehmer des Buildathons,
+            <span style="color: #F97316; font-weight:600;">100 kostenlose Credits zu erhalten</span> —
+            damit du am {event.date} direkt loslegen kannst.
+          </p>
+        </div>
+
+        <!-- Divider -->
+        <div style="height:1px; background: rgba(255,255,255,0.08); margin: 0 2rem;"></div>
+
+        <!-- Form -->
+        <div id="form-section" class="px-8 py-6">
+          <form id="optin-form" novalidate data-event={eventSlug}>
+            <div class="flex flex-col gap-4">
+
+              <div>
+                <label for="name" class="block text-sm font-medium mb-1.5" style="color: rgba(255,255,255,0.75);">
+                  Name
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  autocomplete="name"
+                  required
+                  placeholder="Vorname Nachname"
+                  class="input-dark w-full px-4 py-3 rounded-xl text-base"
+                />
+              </div>
+
+              <div>
+                <label for="email" class="block text-sm font-medium mb-1.5" style="color: rgba(255,255,255,0.75);">
+                  E-Mail
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  required
+                  placeholder="deine@email.at"
+                  class="input-dark w-full px-4 py-3 rounded-xl text-base"
+                />
+              </div>
+
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input
+                  id="consent"
+                  name="consent"
+                  type="checkbox"
+                  class="mt-0.5 w-5 h-5 rounded cursor-pointer flex-shrink-0"
+                  style="accent-color: #F97316;"
+                />
+                <span class="text-sm leading-snug" style="color: rgba(255,255,255,0.5);">
+                  Ich willige ein, dass meine E-Mail-Adresse an
+                  <a href="https://lovable.dev" target="_blank" rel="noopener noreferrer" style="color: rgba(255,255,255,0.8); font-weight:500; text-decoration:none;">Lovable</a> weitergegeben wird,
+                  damit ich 100 Lovable Credits erhalten kann.
+                </span>
+              </label>
+
+              <p id="error-msg" class="text-sm hidden" style="color: #ff7b7b;"></p>
+
+              <button
+                id="submit-btn"
+                type="submit"
+                disabled
+                class="w-full py-3.5 rounded-xl font-semibold text-white transition-all text-base"
+                style="background: #F97316; opacity: 0.4; cursor: not-allowed;"
+              >
+                <span id="btn-label">Credits sichern →</span>
+                <span id="btn-spinner" class="hidden">
+                  <svg class="inline w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                </span>
+              </button>
+
+            </div>
+          </form>
+        </div>
+
+        <!-- Success State -->
+        <div id="success-section" class="hidden px-8 py-10 text-center">
+          <div class="text-5xl mb-4">🎉</div>
+          <h2 class="text-xl font-bold mb-2" style="color: #ffffff;">Alles klar!</h2>
+          <p style="color: rgba(255,255,255,0.6);" class="leading-relaxed">
+            Du bekommst deine Credits rechtzeitig vor dem Event — schau in dein Postfach.
+          </p>
+        </div>
+
+      </div>
+    )}
+
+    <!-- Footer -->
+    <p class="mt-6 text-sm text-center" style="color: rgba(255,255,255,0.35);">
+      Ein Event von
+      <a href="https://lu.ma/genai-collective" target="_blank" rel="noopener noreferrer"
+         style="color: #F97316;" class="font-medium hover:underline">
+        AI Collective Innsbruck
+      </a>
+      {event && <span> · {event.date}</span>}
+    </p>
+
+  </main>
+</BaseLayout>
+
+<style>
+  /* Override body background for this page only */
+  body {
+    background: #0e0f14 !important;
+  }
+
+  /* Lovable-style dark gradient background */
+  .lovable-bg {
+    background:
+      radial-gradient(ellipse 80% 60% at 75% -10%, rgba(75, 115, 255, 0.45) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 20% 55%, rgba(201, 38, 211, 0.35) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 60% 105%, rgba(254, 123, 2, 0.4) 0%, transparent 55%),
+      #0e0f14;
+  }
+
+  /* Glass morphism card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Dark input fields */
+  .input-dark {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    outline: none;
+    transition: border-color 200ms ease;
+  }
+  .input-dark::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+  }
+  .input-dark:focus {
+    border-color: #F97316;
+  }
+
+  /* Submit button active state */
+  #submit-btn:not(:disabled) {
+    opacity: 1 !important;
+    cursor: pointer !important;
+  }
+  #submit-btn:not(:disabled):hover {
+    background: #EA6A0A !important;
+  }
+
+  /* Focus ring on dark */
+  :focus-visible {
+    outline: 2px solid #F97316 !important;
+    outline-offset: 3px;
+  }
+</style>
+
+<script>
+  const form = document.getElementById('optin-form') as HTMLFormElement | null;
+  if (!form) throw new Error('no form');
+
+  const consent = document.getElementById('consent') as HTMLInputElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const btnLabel = document.getElementById('btn-label')!;
+  const btnSpinner = document.getElementById('btn-spinner')!;
+  const errorMsg = document.getElementById('error-msg')!;
+  const formSection = document.getElementById('form-section')!;
+  const successSection = document.getElementById('success-section')!;
+
+  const eventSlug = form.dataset.event ?? '';
+
+  consent.addEventListener('change', () => {
+    submitBtn.disabled = !consent.checked;
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorMsg.classList.add('hidden');
+
+    const name = (document.getElementById('name') as HTMLInputElement).value.trim();
+    const email = (document.getElementById('email') as HTMLInputElement).value.trim();
+
+    if (!name || !email) {
+      errorMsg.textContent = 'Bitte fülle alle Felder aus.';
+      errorMsg.classList.remove('hidden');
+      return;
+    }
+
+    btnLabel.classList.add('hidden');
+    btnSpinner.classList.remove('hidden');
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch('/api/optin/lovable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, consent: true, event: eventSlug }),
+      });
+
+      const data = await res.json();
+
+      if (data.duplicate) {
+        formSection.classList.add('hidden');
+        successSection.innerHTML = `
+          <div style="font-size:3rem;" class="mb-4">👍</div>
+          <h2 class="text-xl font-bold mb-2" style="color:#ffffff;">Du bist schon dabei!</h2>
+          <p style="color:rgba(255,255,255,0.6);" class="leading-relaxed">
+            Du hast dich schon eingetragen — alles gut! Die Credits kommen rechtzeitig per E-Mail.
+          </p>
+        `;
+        successSection.classList.remove('hidden');
+        return;
+      }
+
+      if (data.success) {
+        formSection.classList.add('hidden');
+        successSection.classList.remove('hidden');
+        return;
+      }
+
+      errorMsg.textContent = 'Etwas ist schiefgelaufen. Bitte versuch es nochmal.';
+      errorMsg.classList.remove('hidden');
+    } catch {
+      errorMsg.textContent = 'Netzwerkfehler. Bitte versuch es nochmal.';
+      errorMsg.classList.remove('hidden');
+    } finally {
+      btnLabel.classList.remove('hidden');
+      btnSpinner.classList.add('hidden');
+      submitBtn.disabled = !consent.checked;
+    }
+  });
+</script>
