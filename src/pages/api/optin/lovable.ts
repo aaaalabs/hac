@@ -24,16 +24,16 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ error: 'invalid_event' }, { status: 400 });
   }
 
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
-  if (await isRateLimited(ip)) {
-    return Response.json({ error: 'rate_limited' }, { status: 429 });
-  }
-
-  // Global dedup — one email can only register for one event
+  // Global dedup — check before rate limiting so repeat visitors see a friendly message
   const dedupKey = `optin:lovable:email:${email.toLowerCase()}`;
   const existing = await kv.get(dedupKey);
   if (existing) {
     return Response.json({ duplicate: true });
+  }
+
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
+  if (await isRateLimited(ip)) {
+    return Response.json({ error: 'rate_limited' }, { status: 429 });
   }
 
   const entry = {
