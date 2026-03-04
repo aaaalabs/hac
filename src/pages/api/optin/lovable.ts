@@ -33,7 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
 
-  const BYPASS_REFERRERS = ['luma', 'hacker'];
+  const BYPASS_REFERRERS = ['hacker'];
   if (!BYPASS_REFERRERS.includes(referrer ?? '')) {
     if (await isRateLimited(ip)) {
       return Response.json({ error: 'rate_limited' }, { status: 429 });
