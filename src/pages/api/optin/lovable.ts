@@ -33,7 +33,8 @@ export const POST: APIRoute = async ({ request }) => {
 
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
 
-  if (referrer !== 'luma') {
+  const BYPASS_REFERRERS = ['luma', 'hacker'];
+  if (!BYPASS_REFERRERS.includes(referrer ?? '')) {
     if (await isRateLimited(ip)) {
       return Response.json({ error: 'rate_limited' }, { status: 429 });
     }
@@ -50,7 +51,7 @@ export const POST: APIRoute = async ({ request }) => {
   await Promise.all([
     kv.set(dedupKey, entry, { ex: 60 * 60 * 24 * 90 }),
     kv.lpush(`optin:lovable:${event}:list`, email.toLowerCase()),
-    ...(referrer !== 'luma' ? [setRateLimit(ip)] : []),
+    ...(!BYPASS_REFERRERS.includes(referrer ?? '') ? [setRateLimit(ip)] : []),
   ]);
 
   return Response.json({ success: true });
