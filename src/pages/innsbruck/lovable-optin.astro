@@ -8,6 +8,7 @@ const EVENTS: Record<string, { title: string; date: string }> = {
 };
 
 const eventSlug = Astro.url.searchParams.get('event') ?? '';
+const referrer = Astro.url.searchParams.get('referrer') ?? '';
 const event = EVENTS[eventSlug];
 ---
 
@@ -66,7 +67,7 @@ const event = EVENTS[eventSlug];
 
         <!-- Form -->
         <div id="form-section" class="px-8 py-6">
-          <form id="optin-form" novalidate data-event={eventSlug}>
+          <form id="optin-form" novalidate data-event={eventSlug} data-referrer={referrer}>
             <div class="flex flex-col gap-4">
 
               <div>
@@ -228,6 +229,7 @@ const event = EVENTS[eventSlug];
   const successSection = document.getElementById('success-section')!;
 
   const eventSlug = form.dataset.event ?? '';
+  const referrer = form.dataset.referrer ?? '';
 
   consent.addEventListener('change', () => {
     submitBtn.disabled = !consent.checked;
@@ -254,7 +256,7 @@ const event = EVENTS[eventSlug];
       const res = await fetch('/api/optin/lovable', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, consent: true, event: eventSlug }),
+        body: JSON.stringify({ name, email, consent: true, event: eventSlug, referrer }),
       });
 
       const data = await res.json();

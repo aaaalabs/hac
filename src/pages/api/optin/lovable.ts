@@ -7,14 +7,14 @@ import { isRateLimited, setRateLimit } from '../../../lib/kv';
 const VALID_EVENTS = ['buildathon-zero', 'ideen-fuer-tirol'];
 
 export const POST: APIRoute = async ({ request }) => {
-  let body: { name?: string; email?: string; consent?: boolean; event?: string };
+  let body: { name?: string; email?: string; consent?: boolean; event?: string; referrer?: string };
   try {
     body = await request.json();
   } catch {
     return Response.json({ error: 'invalid_body' }, { status: 400 });
   }
 
-  const { name, email, consent, event } = body;
+  const { name, email, consent, event, referrer } = body;
 
   if (!name || !email || !consent) {
     return Response.json({ error: 'missing_fields' }, { status: 400 });
@@ -32,8 +32,11 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
-  if (await isRateLimited(ip)) {
-    return Response.json({ error: 'rate_limited' }, { status: 429 });
+
+  if (referrer !== 'luma') {
+    if (await isRateLimited(ip)) {
+      return Response.json({ error: 'rate_limited' }, { status: 429 });
+    }
   }
 
   const entry = {
@@ -47,8 +50,8 @@ export const POST: APIRoute = async ({ request }) => {
   await Promise.all([
     kv.set(dedupKey, entry, { ex: 60 * 60 * 24 * 90 }),
     kv.lpush(`optin:lovable:${event}:list`, email.toLowerCase()),
+    ...(referrer !== 'luma' ? [setRateLimit(ip)] : []),
   ]);
-  await setRateLimit(ip);
 
   return Response.json({ success: true });
 };
