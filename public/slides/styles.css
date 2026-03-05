@@ -1,0 +1,380 @@
+/* =============================================================================
+   AI Collective Innsbruck — Slide Deck Design System
+   CI: Orange #F97316 · Blue #0076db · Dark #0c0a09 · Font: Inter
+   ============================================================================= */
+
+/* ── Fonts ─────────────────────────────────────────────────────────────────── */
+/* Loaded via index.html: Inter (300-900) + JetBrains Mono (400-600) */
+
+/* ── Tokens ─────────────────────────────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg:            #0c0a09;
+  --bg-2:          #161310;
+  --bg-card:       rgba(255,255,255,0.040);
+  --bg-card-hover: rgba(255,255,255,0.068);
+
+  /* Brand — primary */
+  --orange:        #F97316;
+  --orange-deep:   #EA6A0A;
+  --orange-light:  #FF915A;
+  --orange-soft:   rgba(249,115,22,0.12);
+  --orange-border: rgba(249,115,22,0.28);
+
+  /* Brand — secondary */
+  --blue:          #0076db;
+  --blue-light:    #3395e8;
+  --blue-soft:     rgba(0,118,219,0.10);
+  --blue-border:   rgba(0,118,219,0.24);
+
+  /* Phase colours */
+  --green:         #22c55e;
+  --green-soft:    rgba(34,197,94,0.10);
+  --green-border:  rgba(34,197,94,0.24);
+  --amber:         #F59E0B;
+  --amber-soft:    rgba(245,158,11,0.10);
+  --amber-border:  rgba(245,158,11,0.24);
+  --rose:          #f43f5e;
+  --rose-soft:     rgba(244,63,94,0.10);
+  --rose-border:   rgba(244,63,94,0.20);
+
+  /* Text */
+  --text:          #F9FAFB;
+  --text-2:        rgba(249,250,251,0.62);
+  --text-3:        rgba(249,250,251,0.38);
+
+  /* Borders */
+  --border:        rgba(255,255,255,0.07);
+  --border-2:      rgba(255,255,255,0.13);
+}
+
+/* ── Reset ──────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ── Slide shell ─────────────────────────────────────────────────────────────── */
+.slide {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 56px 72px 76px;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.slide.active {
+  display: flex;
+  opacity: 1;
+}
+
+/* ── Background layers (injected by main.js) ─────────────────────────────────── */
+.bg-base {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 65% 50% at 8% 82%, rgba(249,115,22,0.10) 0%, transparent 58%),
+    radial-gradient(ellipse 55% 50% at 92% 18%, rgba(0,118,219,0.08) 0%, transparent 55%),
+    var(--bg);
+}
+.bg-grid {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  opacity: 0.025;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* ── Phase accent line (top of slide) ─────────────────────────────────────────── */
+.phase-line {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 2;
+}
+.phase-line--ideation   { background: var(--orange); }
+.phase-line--konzeption { background: var(--blue); }
+.phase-line--building   { background: var(--green); }
+.phase-line--showntell  { background: var(--amber); }
+.phase-line--closing    { background: var(--rose); }
+
+/* ── Slide content wrapper ───────────────────────────────────────────────────── */
+.slide-content {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 1200px;
+}
+
+/* ── Typography ─────────────────────────────────────────────────────────────── */
+h1 {
+  font-weight: 900; font-size: 4.2rem;
+  line-height: 1.05; letter-spacing: -0.045em;
+  color: var(--text);
+}
+h2 {
+  font-weight: 800; font-size: 2.75rem;
+  line-height: 1.1; letter-spacing: -0.035em;
+  color: var(--text);
+}
+h3 {
+  font-weight: 700; font-size: 1.5rem;
+  line-height: 1.25; letter-spacing: -0.02em;
+}
+p { font-size: 1.15rem; line-height: 1.7; color: var(--text-2); }
+.large-text { font-size: 1.4rem; line-height: 1.6; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* Gradient text */
+.grad-orange {
+  background: linear-gradient(135deg, var(--orange), var(--orange-light));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.grad-blue {
+  background: linear-gradient(135deg, var(--blue), var(--blue-light));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Colour utilities ────────────────────────────────────────────────────────── */
+.text-orange { color: var(--orange); }
+.text-blue   { color: var(--blue-light); }
+.text-green  { color: var(--green); }
+.text-amber  { color: var(--amber); }
+.text-rose   { color: var(--rose); }
+.text-muted  { color: var(--text-3); }
+.text-center { text-align: center; }
+.text-sm     { font-size: 0.9rem; }
+.text-xs     { font-size: 0.8rem; }
+.font-semibold { font-weight: 600; }
+.font-bold     { font-weight: 700; }
+
+/* ── Badge / phase pill ──────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 100px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  white-space: nowrap;
+}
+.badge-orange  { background: var(--orange-soft);  color: var(--orange);     border: 1px solid var(--orange-border); }
+.badge-blue    { background: var(--blue-soft);    color: var(--blue-light); border: 1px solid var(--blue-border);   }
+.badge-green   { background: var(--green-soft);   color: var(--green);      border: 1px solid var(--green-border);  }
+.badge-amber   { background: var(--amber-soft);   color: var(--amber);      border: 1px solid var(--amber-border);  }
+.badge-rose    { background: var(--rose-soft);    color: var(--rose);       border: 1px solid var(--rose-border);   }
+.badge-neutral { background: rgba(255,255,255,0.05); color: var(--text-2); border: 1px solid var(--border-2); }
+
+/* ── Cards ───────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 20px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.card:hover { background: var(--bg-card-hover); border-color: var(--border-2); }
+.card-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-3);
+  margin-bottom: 8px;
+}
+.card h3 { font-size: 1.05rem; margin-bottom: 6px; }
+.card p  { font-size: 0.95rem; line-height: 1.55; }
+
+/* ── Grid layouts ────────────────────────────────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr;           gap: 18px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr);     gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr);     gap: 14px; }
+.grid-5 { display: grid; grid-template-columns: repeat(5,1fr);     gap: 13px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+
+/* ── Highlight box ───────────────────────────────────────────────────────────── */
+.highlight {
+  background: linear-gradient(135deg, rgba(249,115,22,0.07), rgba(0,118,219,0.05));
+  border: 1px solid rgba(249,115,22,0.20);
+  border-radius: 14px;
+  padding: 22px 26px;
+}
+
+/* ── Timeline ────────────────────────────────────────────────────────────────── */
+.timeline { display: flex; flex-direction: column; }
+.tl-row {
+  display: grid;
+  grid-template-columns: 72px 4px 1fr auto;
+  column-gap: 14px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.tl-row:last-child { border-bottom: none; }
+.tl-time  { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--text-3); text-align: right; }
+.tl-bar   { width: 4px; height: 26px; border-radius: 2px; flex-shrink: 0; }
+.tl-label { font-size: 1.05rem; font-weight: 500; }
+.tl-dur   { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; color: var(--text-3); }
+
+/* ── List items ──────────────────────────────────────────────────────────────── */
+.list-item { display: flex; gap: 12px; align-items: flex-start; padding: 9px 0; }
+.list-dot  { width: 6px; height: 6px; border-radius: 50%; margin-top: 9px; flex-shrink: 0; }
+.list-item p { font-size: 1.1rem; color: var(--text); line-height: 1.5; }
+
+/* ── Prompt framework ────────────────────────────────────────────────────────── */
+.prompt-item { display: flex; gap: 13px; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.prompt-item:last-child { border-bottom: none; }
+.prompt-num  {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: 600;
+  color: var(--blue-light); min-width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--blue-soft); border-radius: 7px; flex-shrink: 0;
+}
+.prompt-label { font-weight: 600; font-size: 0.98rem; color: var(--text); }
+.prompt-desc  { font-size: 0.88rem; color: var(--text-2); margin-top: 2px; line-height: 1.4; }
+
+/* ── Principle boxes ─────────────────────────────────────────────────────────── */
+.principle {
+  display: flex; align-items: center; gap: 18px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 18px 20px;
+}
+.principle-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.principle h3 { font-size: 1.02rem; margin-bottom: 3px; }
+.principle p  { font-size: 0.88rem; }
+
+/* ── Feature cards (Show & Tell) ─────────────────────────────────────────────── */
+.feature-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 26px 18px; text-align: center;
+}
+.feature-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
+}
+.feature-num {
+  font-size: 2.4rem; font-weight: 900; letter-spacing: -0.04em; line-height: 1; margin: 6px 0;
+}
+.feature-card h3 { font-size: 1.02rem; margin-bottom: 5px; }
+
+/* ── Jury criteria cards ─────────────────────────────────────────────────────── */
+.jury-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 18px 12px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.jury-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.jury-card h3 { font-size: 0.88rem; line-height: 1.3; font-weight: 600; }
+
+/* ── Quote block ─────────────────────────────────────────────────────────────── */
+.quote-block {
+  padding: 34px 42px;
+  background: var(--bg-card);
+  border-left: 3px solid var(--orange);
+  border-radius: 0 14px 14px 0;
+}
+.quote-text   { font-size: 1.85rem; font-style: italic; font-weight: 400; line-height: 1.5; color: var(--text); }
+.quote-author { margin-top: 16px; font-size: 0.92rem; color: var(--text-3); }
+
+/* ── Phase title slides ──────────────────────────────────────────────────────── */
+.phase-title {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center;
+}
+.phase-bg-num {
+  position: absolute;
+  font-size: 22vw; font-weight: 900; letter-spacing: -0.06em; line-height: 0.85;
+  opacity: 0.04;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  pointer-events: none; user-select: none; z-index: 0;
+}
+
+/* ── Separator + Tag ─────────────────────────────────────────────────────────── */
+.sep {
+  width: 44px; height: 3px;
+  background: var(--orange); border-radius: 2px;
+}
+.tag {
+  display: inline-block; padding: 4px 13px; border-radius: 100px;
+  font-size: 0.76rem; font-weight: 500; letter-spacing: 0.03em;
+  background: rgba(255,255,255,0.05); color: var(--text-2);
+  border: 1px solid var(--border-2);
+}
+
+/* ── Check / X row items ─────────────────────────────────────────────────────── */
+.check-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 4px 0; font-size: 1rem; color: var(--text);
+}
+
+/* ── Spacing utilities ───────────────────────────────────────────────────────── */
+.mt-6  { margin-top:  6px; } .mt-8  { margin-top:  8px; } .mt-10 { margin-top: 10px; }
+.mt-16 { margin-top: 16px; } .mt-20 { margin-top: 20px; } .mt-24 { margin-top: 24px; }
+.mt-28 { margin-top: 28px; } .mt-32 { margin-top: 32px; } .mt-40 { margin-top: 40px; }
+.mt-48 { margin-top: 48px; }
+.mb-8  { margin-bottom:  8px; } .mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; } .mb-20 { margin-bottom: 20px; } .mb-24 { margin-bottom: 24px; }
+
+/* ── SVG Icons ───────────────────────────────────────────────────────────────── */
+.icon { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+
+/* ── Navigation bar ──────────────────────────────────────────────────────────── */
+.nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 32px;
+  background: rgba(12,10,9,0.90);
+  backdrop-filter: blur(18px);
+  border-top: 1px solid var(--border);
+  z-index: 100;
+}
+.nav-brand {
+  display: flex; align-items: center; gap: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.76rem; font-weight: 500;
+  color: var(--text-3); letter-spacing: 0.05em;
+  text-decoration: none;
+}
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; color: var(--text-3); }
+.nav-btns { display: flex; gap: 5px; }
+.nav-btn {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  color: var(--text-2); border-radius: 8px; padding: 6px 13px;
+  cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 500;
+  transition: background 0.18s, color 0.18s;
+}
+.nav-btn:hover    { background: rgba(255,255,255,0.10); color: var(--text); }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* ── Fullscreen button ───────────────────────────────────────────────────────── */
+.fs-btn {
+  position: fixed; top: 16px; right: 16px; z-index: 200;
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  color: var(--text-3); border-radius: 8px; padding: 6px 10px;
+  cursor: pointer; display: flex; align-items: center;
+  transition: background 0.18s, color 0.18s;
+}
+.fs-btn:hover { background: rgba(255,255,255,0.10); color: var(--text); }
+
+/* ── Entrance animation ──────────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.slide.active .slide-content > * { animation: fadeUp 0.5s ease forwards; opacity: 0; }
+.slide.active .slide-content > *:nth-child(1) { animation-delay: 0.04s; }
+.slide.active .slide-content > *:nth-child(2) { animation-delay: 0.10s; }
+.slide.active .slide-content > *:nth-child(3) { animation-delay: 0.16s; }
+.slide.active .slide-content > *:nth-child(4) { animation-delay: 0.22s; }
+.slide.active .slide-content > *:nth-child(5) { animation-delay: 0.27s; }
