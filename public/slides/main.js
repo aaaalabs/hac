@@ -7,11 +7,14 @@ const slides = window.__slides || [];
 
 // ── Zeitplan (MEZ) ────────────────────────────────────────────────────────────
 const SCHEDULE = [
-  [17,0],[17,2],[17,4],[17,7],[17,10],[17,13],
-  [17,15],[17,35],[17,55],[18,15],[18,23],[18,33],
-  [18,55],[19,15],[19,35],[20,5],[20,20],[20,35],[20,50],[21,5]
+  [17,15],[17,17],[17,19],[17,25],[17,28],                   // slides 0–4  (general)
+  [17,30],[17,50],[18,10],[18,28],                           // slides 5–8  (ideation)
+  [18,28],                                                   // slide  9    (mindset)
+  [18,30],[18,40],[18,50],[19,5],                           // slides 10–13 (konzeption)
+  [19,15],[19,25],[20,0],[20,30],[20,38],[20,43],           // slides 14–19 (building + showntell preview + timer)
+  [20,55],[21,5],[21,10],[21,15],[21,20],[21,25]            // slides 20–25 (showntell + closing)
 ];
-const EVENT_END = [21, 30];
+const EVENT_END = [22, 0];
 
 function getMEZ() {
   const parts = new Intl.DateTimeFormat('de-AT', {
@@ -37,7 +40,7 @@ function getScheduledSlide(mez) {
 
 // Phase → label + badge class
 const PHASES = {
-  general:    { label: 'AI Collective Innsbruck',      badge: 'badge-neutral'  },
+  general:    { label: 'Introduction',                  badge: 'badge-neutral'  },
   ideation:   { label: 'Phase 01 — Ideation',          badge: 'badge-orange'   },
   konzeption: { label: 'Phase 02 — Konzeption',        badge: 'badge-blue'     },
   building:   { label: 'Phase 03 — Building',          badge: 'badge-green'    },
@@ -86,6 +89,37 @@ slides.forEach((slide, i) => {
 
 const slideEls = document.querySelectorAll('.slide');
 
+// ── Timer system ──────────────────────────────────────────────────────────────
+const timers = {};
+
+document.querySelectorAll('.timer-big').forEach(el => {
+  el.addEventListener('click', () => {
+    const phase = el.dataset.phase;
+    if (timers[phase]?.running) return;
+    const slide = window.__slides.find(s => s.isTimer && s.html.includes(`timer-click-${phase}`));
+    const mins = slide ? slide.timerMinutes : 60;
+    timers[phase] = { running: true, startTime: Date.now(), durationMs: mins * 60 * 1000 };
+    el.classList.add('running');
+    document.getElementById(`timer-hint-${phase}`)?.classList.add('hidden');
+  });
+});
+
+function updateTimers() {
+  for (const [phase, t] of Object.entries(timers)) {
+    if (!t.running) continue;
+    const remaining = Math.max(0, t.durationMs - (Date.now() - t.startTime));
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    const el = document.getElementById(`timer-click-${phase}`);
+    if (el) {
+      el.textContent = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+      el.classList.remove('warning','danger');
+      if (remaining / t.durationMs < 0.05) el.classList.add('danger');
+      else if (remaining / t.durationMs < 0.15) el.classList.add('warning');
+    }
+  }
+}
+
 // ── Navigation ───────────────────────────────────────────────────────────────
 function goTo(n) {
   slideEls[current].classList.remove('active');
@@ -108,19 +142,11 @@ function goTo(n) {
 btnNext.onclick = () => goTo(current + 1);
 btnPrev.onclick = () => goTo(current - 1);
 
-// ── Autopilot ─────────────────────────────────────────────────────────────────
-let autopilotOn = false;
-const btnAutopilot = document.getElementById('btn-autopilot');
-btnAutopilot.onclick = () => {
-  autopilotOn = !autopilotOn;
-  btnAutopilot.textContent = autopilotOn ? '⏸ Auto' : '▶ Auto';
-  btnAutopilot.classList.toggle('is-running', autopilotOn);
-};
-
 // ── Marker update ─────────────────────────────────────────────────────────────
 function updateMarker(mez) {
-  const startMins = SCHEDULE[current][0] * 60 + SCHEDULE[current][1];
-  const endEntry  = SCHEDULE[current + 1] ?? EVENT_END;
+  const sched     = SCHEDULE[current] || SCHEDULE[SCHEDULE.length - 1];
+  const startMins = sched[0] * 60 + sched[1];
+  const endEntry  = SCHEDULE[current + 1] || EVENT_END;
   const endMins   = endEntry[0] * 60 + endEntry[1];
   const nowMins   = mez.h * 60 + mez.m + mez.s / 60;
   const frac      = Math.max(0, Math.min(1, (nowMins - startMins) / (endMins - startMins)));
@@ -143,13 +169,11 @@ function updateMarker(mez) {
 // ── Tick loop (1s) ────────────────────────────────────────────────────────────
 setInterval(() => {
   const mez = getMEZ();
-  document.getElementById('mez-clock').textContent =
+  const clockEl = document.getElementById('mez-clock');
+  if (clockEl) clockEl.textContent =
     `${String(mez.h).padStart(2,'0')}:${String(mez.m).padStart(2,'0')}`;
   updateMarker(mez);
-  if (autopilotOn) {
-    const target = getScheduledSlide(mez);
-    if (target > current) goTo(target);
-  }
+  updateTimers();
 }, 1000);
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
@@ -157,7 +181,6 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight' || e.key === ' ')  { e.preventDefault(); goTo(current + 1); }
   if (e.key === 'ArrowLeft')                     { e.preventDefault(); goTo(current - 1); }
   if (e.key === 'f' || e.key === 'F')           { toggleFullscreen(); }
-  if (e.key === 'a' || e.key === 'A')           { btnAutopilot.onclick(); }
   if (e.key === 'Home')                          { e.preventDefault(); goTo(0); }
   if (e.key === 'End')                           { e.preventDefault(); goTo(slides.length - 1); }
 });

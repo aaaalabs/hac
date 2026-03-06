@@ -1,0 +1,301 @@
+---
+export const prerender = false;
+
+const MC = [
+  { id: 'coaching', num: '01', q: 'Hat die Rollenverteilung funktioniert — Erfahrene coachen, Einsteiger tippen?',
+    opts: ['Ja, perfekt — so sollte es immer sein','Ja, aber manchmal hat der Erfahrene doch übernommen','Neutral / situationsabhängig','Nein, das hat kaum funktioniert','War bei uns nicht so aufgeteilt'] },
+  { id: 'hardest', num: '02', q: 'Was war persönlich dein härtester Moment?',
+    opts: ['Den richtigen Prompt formulieren','Das Tool hat nicht wie erwartet funktioniert','Die Idee auf das Wesentliche reduzieren','Keine Zeit mehr für das, was ich wollte','Das Team auf eine Richtung einigen'] },
+  { id: 'highlight', num: '03', q: 'Was hat heute überraschend gut funktioniert?',
+    opts: ['Die Teamdynamik — wir haben gut zusammengearbeitet','Der erste Prompt, der sofort gesessen hat','Die Ideenfindung war überraschend kreativ','Das Tool hat besser funktioniert als erwartet','Die Zeitstruktur & Phasen haben gut gepasst'] },
+  { id: 'ai-next', num: '04', q: 'Wie wahrscheinlich nutzt du in den nächsten 2 Wochen ein KI-Tool für ein eigenes Projekt?',
+    opts: ['Fast sicher — ich hab schon eine Idee','Wahrscheinlich','Vielleicht','Eher nicht'] },
+  { id: 'prototype', num: '05', q: 'Was passiert mit eurer heutigen Idee?',
+    opts: ['Wir bauen weiter — das hat Potenzial','Ich zeig\'s jemandem / präsentiere es intern','War ein tolles Experiment — Idee ist aber erledigt','Noch unklar'] },
+  { id: 'phase', num: '06', q: 'Welche Phase hat dir persönlich am meisten gebracht?',
+    opts: ['Ideation (Idee entwickeln)','Konzeption (Master Prompt schreiben)','Building (Bauen & Iterieren)','Show & Tell (Demos der anderen Teams)'] },
+  { id: 'improve', num: '07', q: 'Was sollten wir beim nächsten Buildathon anders machen?',
+    opts: ['Mehr Zeit fürs Building','Mehr Coaching & Support während des Bauens','Besseres Tool-Onboarding am Anfang','Mehr Zeit für Ideation','Mehr Zeit für Show & Tell & Feedback','Nichts — es hat genau so gepasst'] },
+  { id: 'return', num: '08', q: 'Kommst du zum Flagship Buildathon "Ideen für Tirol" am 24. März?',
+    opts: ['Auf jeden Fall!','Sehr wahrscheinlich','Ich überleg\'s mir noch','Wahrscheinlich nicht'] },
+  { id: 'networking', num: '09', q: 'Hast du heute jemanden kennengelernt, mit dem du in Kontakt bleiben willst?',
+    opts: ['Ja, definitiv — haben uns schon ausgetauscht','Ja, ein paar interessante Leute getroffen','Noch nicht, aber ich würde gerne','War heute nicht so mein Fokus'] },
+  { id: 'team-contribution', num: '10', q: 'Hatte heute jede:r in eurem Team einen konkreten Beitrag?',
+    opts: ['Ja — alle waren wirklich aktiv eingebunden','Größtenteils — aber 1–2 Personen fanden schwer einen Platz','Nein — es gab zu viel Gedränge um Aufgaben','Eher das Gegenteil — wir hätten mehr Leute gebraucht'] },
+];
+
+const RATINGS = [
+  { id: 'r-role',       num: '11', q: 'Wie klar war deine Rolle im Team?' },
+  { id: 'r-moderation', num: '12', q: 'Wie empfandest du die Moderation & Führung?' },
+  { id: 'r-structure',  num: '13', q: 'Wie gut hat die Phasen-Struktur des Abends gepasst?' },
+  { id: 'r-output',     num: '14', q: 'Wie zufrieden bist du mit dem Output eures Teams?' },
+];
+
+const TOTAL = MC.length + RATINGS.length + 1;
+---
+
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Feedback · Buildathon #0 · AI Collective Innsbruck</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #111; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+
+    #pg-track { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: #222; z-index: 30; }
+    #pg-fill   { height: 100%; background: #f97316; width: 0%; transition: width 0.5s ease; }
+
+    #topbar { position: fixed; top: 2px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; z-index: 20; }
+    #topbar span { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #444; letter-spacing: 0.08em; }
+
+    #slides { position: relative; height: 100vh; width: 100%; }
+    .slide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 80px 24px 100px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; transform: translateY(40px); }
+    .slide.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+    .slide.exit   { opacity: 0; pointer-events: none; transform: translateY(-40px); }
+    .slide-inner  { width: 100%; max-width: 580px; }
+
+    .q-num  { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #f97316; font-weight: 500; margin-bottom: 14px; }
+    .q-num::after { content: ' →'; }
+    .q-text { font-size: clamp(1.2rem, 4vw, 1.65rem); font-weight: 600; color: #fff; line-height: 1.35; margin-bottom: 32px; }
+
+    .opts { display: flex; flex-direction: column; gap: 10px; }
+    .opt  { display: flex; align-items: center; gap: 14px; padding: 13px 16px; border-radius: 10px; border: 1.5px solid rgba(255,255,255,0.1); background: transparent; color: #999; font-size: 0.95rem; font-family: inherit; cursor: pointer; text-align: left; transition: border-color 0.15s, background 0.15s, color 0.15s; width: 100%; }
+    .opt:hover { border-color: rgba(249,115,22,0.4); color: #ddd; }
+    .opt.sel   { border-color: #f97316; background: rgba(249,115,22,0.12); color: #fff; }
+    .opt-key   { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 5px; border: 1.5px solid #f97316; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #f97316; flex-shrink: 0; transition: background 0.15s, color 0.15s; }
+    .opt.sel .opt-key { background: #f97316; color: #111; }
+
+    .stars { display: flex; gap: 6px; margin-bottom: 16px; }
+    .star  { font-size: 2.6rem; color: #2a2a2a; cursor: pointer; line-height: 1; padding: 2px 6px; transition: color 0.12s, transform 0.1s; user-select: none; }
+    .star:hover { color: rgba(249,115,22,0.5); }
+    .star.lit   { color: #f97316; }
+    .star:active { transform: scale(0.88); }
+
+    .reason-wrap { display: none; margin-top: 14px; }
+    .reason-wrap textarea { width: 100%; background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px 14px; color: #ccc; font-size: 0.9rem; font-family: inherit; resize: none; outline: none; transition: border-color 0.15s; }
+    .reason-wrap textarea:focus { border-color: rgba(249,115,22,0.4); }
+    .open-textarea { width: 100%; background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 14px 16px; color: #ccc; font-size: 1rem; font-family: inherit; resize: none; outline: none; transition: border-color 0.15s; min-height: 130px; }
+    .open-textarea:focus { border-color: rgba(249,115,22,0.4); }
+
+    /* Weiter button — only for ratings with low score */
+    .weiter-wrap { margin-top: 24px; display: none; align-items: center; gap: 14px; }
+    .weiter-wrap.show { display: flex; }
+    .weiter-btn  { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; background: #f97316; color: #111; font-weight: 700; font-size: 0.88rem; font-family: inherit; border-radius: 8px; border: none; cursor: pointer; transition: background 0.15s; }
+    .weiter-btn:hover { background: #ea6a0a; }
+    .weiter-hint { font-size: 0.73rem; color: #444; font-family: 'JetBrains Mono', monospace; }
+
+    /* Back button */
+    #back-btn { position: fixed; bottom: 28px; left: 24px; display: none; align-items: center; gap: 6px; padding: 10px 16px; background: transparent; border: 1.5px solid rgba(255,255,255,0.1); border-radius: 8px; color: #555; font-size: 0.8rem; font-family: inherit; cursor: pointer; transition: border-color 0.15s, color 0.15s; z-index: 20; }
+    #back-btn.show { display: flex; }
+    #back-btn:hover { border-color: rgba(255,255,255,0.25); color: #aaa; }
+
+    #thankyou { display: none; position: fixed; inset: 0; background: #111; z-index: 50; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px; }
+    #thankyou.show { display: flex; }
+    #thankyou .emoji { font-size: 4rem; margin-bottom: 24px; }
+    #thankyou h2 { font-size: 2rem; font-weight: 700; margin-bottom: 12px; }
+    #thankyou p  { color: #666; font-size: 0.95rem; max-width: 280px; line-height: 1.6; }
+    #thankyou a  { display: inline-block; margin-top: 32px; color: #f97316; font-size: 0.85rem; text-decoration: none; }
+    #thankyou a:hover { color: #ea6a0a; }
+  </style>
+</head>
+<body>
+
+  <div id="pg-track"><div id="pg-fill"></div></div>
+  <div id="topbar">
+    <span>AI COLLECTIVE IBK</span>
+    <span id="q-counter">1 / {TOTAL}</span>
+  </div>
+
+  <div id="slides">
+
+    {MC.map((q, idx) => (
+      <div class={`slide${idx === 0 ? ' active' : ''}`} data-idx={idx}>
+        <div class="slide-inner">
+          <div class="q-num">{q.num}</div>
+          <p class="q-text">{q.q}</p>
+          <div class="opts">
+            {q.opts.map((opt, oi) => (
+              <button class="opt" data-q={q.id} data-v={opt} data-idx={idx}>
+                <span class="opt-key">{String.fromCharCode(65 + oi)}</span>
+                <span>{opt}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    ))}
+
+    {RATINGS.map((r, ri) => {
+      const idx = MC.length + ri;
+      return (
+        <div class="slide" data-idx={idx}>
+          <div class="slide-inner">
+            <div class="q-num">{r.num}</div>
+            <p class="q-text">{r.q}</p>
+            <div class="stars" id={`stars-${r.id}`}>
+              {[1,2,3,4,5].map(n => (
+                <span class="star" data-r={r.id} data-n={n} data-idx={idx} role="button" aria-label={`${n} von 5`}>★</span>
+              ))}
+            </div>
+            <div class="reason-wrap" id={`reason-${r.id}`}>
+              <textarea rows={2} placeholder="Was hat gefehlt? (optional)" data-reason={r.id}></textarea>
+            </div>
+            <div class="weiter-wrap" id={`w-${idx}`}>
+              <button class="weiter-btn" data-advance={idx}>
+                {idx < TOTAL - 1 ? 'Weiter' : 'Absenden'} <span>↵</span>
+              </button>
+              <span class="weiter-hint">oder Enter ↵</span>
+            </div>
+          </div>
+        </div>
+      );
+    })}
+
+    <!-- Open-ended final question -->
+    <div class="slide" data-idx={MC.length + RATINGS.length}>
+      <div class="slide-inner">
+        <div class="q-num">15</div>
+        <p class="q-text">Gibt es noch etwas, das du uns mitteilen möchtest?</p>
+        <textarea class="open-textarea" id="open-feedback" rows={4} placeholder="Optional — dein Kommentar…"></textarea>
+        <div class="weiter-wrap show" id={`w-${MC.length + RATINGS.length}`}>
+          <button class="weiter-btn" data-advance={MC.length + RATINGS.length}>
+            Absenden <span>↵</span>
+          </button>
+          <span class="weiter-hint">oder Enter ↵</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <button id="back-btn">← Zurück</button>
+
+  <div id="thankyou">
+    <div class="emoji">🙌</div>
+    <h2>Danke!</h2>
+    <p>Dein Feedback hilft uns, den nächsten Buildathon noch besser zu machen.</p>
+    <a href="/">← Zurück zur Startseite</a>
+  </div>
+
+  <script define:vars={{ TOTAL }}>
+    const answers = {};
+    let current = 0;
+    let advancing = false;
+
+    const slides = document.querySelectorAll('.slide');
+    const pgFill  = document.getElementById('pg-fill');
+    const counter = document.getElementById('q-counter');
+    const backBtn = document.getElementById('back-btn');
+
+    function setProgress(idx) {
+      pgFill.style.width = ((idx / TOTAL) * 100) + '%';
+      counter.textContent = `${idx + 1} / ${TOTAL}`;
+      backBtn.classList.toggle('show', idx > 0);
+    }
+
+    function goTo(idx) {
+      if (idx < 0 || advancing) return;
+      if (idx >= TOTAL) { submitAll(); return; }
+      advancing = true;
+      slides[current].classList.add('exit');
+      slides[current].classList.remove('active');
+      setTimeout(() => { slides[current].classList.remove('exit'); advancing = false; }, 320);
+      current = idx;
+      slides[current].classList.add('active');
+      setProgress(current);
+    }
+
+    // MC: auto-advance after short delay
+    document.querySelectorAll('.opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const q   = btn.dataset.q;
+        const idx = parseInt(btn.dataset.idx);
+        document.querySelectorAll(`.opt[data-q="${q}"]`).forEach(b => b.classList.remove('sel'));
+        btn.classList.add('sel');
+        answers[q] = btn.dataset.v;
+        setTimeout(() => goTo(idx + 1), 380);
+      });
+    });
+
+    // Stars
+    document.querySelectorAll('.star').forEach(star => {
+      star.addEventListener('click', () => {
+        const r   = star.dataset.r;
+        const n   = parseInt(star.dataset.n);
+        const idx = parseInt(star.dataset.idx);
+        document.querySelectorAll(`.star[data-r="${r}"]`).forEach((s, i) => s.classList.toggle('lit', i < n));
+        answers[r] = String(n);
+        const reasonEl = document.getElementById(`reason-${r}`);
+        const weiterEl = document.getElementById(`w-${idx}`);
+        if (n < 4) {
+          reasonEl.style.display = 'block';
+          weiterEl.classList.add('show');
+        } else {
+          reasonEl.style.display = 'none';
+          delete answers[`${r}_reason`];
+          setTimeout(() => goTo(idx + 1), 380);
+        }
+      });
+    });
+
+    // Reason textarea
+    document.querySelectorAll('textarea[data-reason]').forEach(ta => {
+      ta.addEventListener('input', () => {
+        const key = `${ta.dataset.reason}_reason`;
+        if (ta.value.trim()) answers[key] = ta.value.trim();
+        else delete answers[key];
+      });
+    });
+
+    // Weiter buttons (ratings with reason)
+    document.querySelectorAll('.weiter-btn').forEach(btn => {
+      btn.addEventListener('click', () => goTo(parseInt(btn.dataset.advance) + 1));
+    });
+
+    // Back button
+    backBtn.addEventListener('click', () => goTo(current - 1));
+
+    // Keyboard
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const w = document.getElementById(`w-${current}`);
+        if (w?.classList.contains('show')) goTo(current + 1);
+        return;
+      }
+      const opts = slides[current].querySelectorAll('.opt');
+      if (opts.length > 0) {
+        const code = e.key.toUpperCase().charCodeAt(0) - 65;
+        if (code >= 0 && code < opts.length) opts[code].click();
+      }
+    });
+
+    async function submitAll() {
+      try {
+        const res = await fetch('/api/survey', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ answers }),
+        });
+        if (res.ok) document.getElementById('thankyou').classList.add('show');
+      } catch {}
+    }
+
+    // Open-ended feedback
+    const openFeedback = document.getElementById('open-feedback');
+    openFeedback.addEventListener('input', () => {
+      if (openFeedback.value.trim()) answers['feedback'] = openFeedback.value.trim();
+      else delete answers['feedback'];
+    });
+
+    setProgress(0);
+  </script>
+
+</body>
+</html>

@@ -34,6 +34,9 @@ const eventsWithProjects = events.map(e => ({
       <button id="tab-btn-lovable" class="tab-btn flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all">
         💌 Lovable Opt-ins
       </button>
+      <button id="tab-btn-survey" class="tab-btn flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all">
+        📊 Survey
+      </button>
     </div>
 
     <!-- Tab: Events & Projekte -->
@@ -208,6 +211,12 @@ const eventsWithProjects = events.map(e => ({
         </div>
       </section>
     </div> <!-- /tab-lovable -->
+
+    <!-- Tab: Survey -->
+    <div id="tab-survey" class="tab-content hidden">
+      <p id="survey-loading" class="text-sm text-[var(--text-muted)] text-center py-6">Lädt…</p>
+      <div id="survey-content" class="hidden flex flex-col gap-5"></div>
+    </div>
 
   </main>
 </BaseLayout>
@@ -436,16 +445,20 @@ const eventsWithProjects = events.map(e => ({
   let optinData: OptinEntry[] = [];
   let currentEventSlug = 'buildathon-zero';
 
-  function activateTab(tab: 'events' | 'lovable') {
+  function activateTab(tab: 'events' | 'lovable' | 'survey') {
     document.getElementById('tab-events')!.classList.toggle('hidden', tab !== 'events');
     document.getElementById('tab-lovable')!.classList.toggle('hidden', tab !== 'lovable');
+    document.getElementById('tab-survey')!.classList.toggle('hidden', tab !== 'survey');
     document.getElementById('tab-btn-events')!.classList.toggle('active', tab === 'events');
     document.getElementById('tab-btn-lovable')!.classList.toggle('active', tab === 'lovable');
+    document.getElementById('tab-btn-survey')!.classList.toggle('active', tab === 'survey');
     if (tab === 'lovable') loadOptins(currentEventSlug);
+    if (tab === 'survey') loadSurvey();
   }
 
   document.getElementById('tab-btn-events')!.addEventListener('click', () => activateTab('events'));
   document.getElementById('tab-btn-lovable')!.addEventListener('click', () => activateTab('lovable'));
+  document.getElementById('tab-btn-survey')!.addEventListener('click', () => activateTab('survey'));
 
   // Event selector buttons
   document.querySelectorAll<HTMLButtonElement>('.event-sel-btn').forEach(btn => {
@@ -520,6 +533,172 @@ const eventsWithProjects = events.map(e => ({
     a.download = `lovable-optins-${currentEventSlug}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
   });
+
+  // ── Survey dashboard ──────────────────────────────────────────────────────
+  const MC_META: { id: string; num: string; q: string; opts: string[] }[] = [
+    { id: 'coaching', num: '01', q: 'Hat die Rollenverteilung funktioniert?',
+      opts: ['Ja, perfekt — so sollte es immer sein','Ja, aber manchmal hat der Erfahrene doch übernommen','Neutral / situationsabhängig','Nein, das hat kaum funktioniert','War bei uns nicht so aufgeteilt'] },
+    { id: 'hardest', num: '02', q: 'Was war persönlich dein härtester Moment?',
+      opts: ['Den richtigen Prompt formulieren','Das Tool hat nicht wie erwartet funktioniert','Die Idee auf das Wesentliche reduzieren','Keine Zeit mehr für das, was ich wollte','Das Team auf eine Richtung einigen'] },
+    { id: 'highlight', num: '03', q: 'Was hat heute überraschend gut funktioniert?',
+      opts: ['Die Teamdynamik — wir haben gut zusammengearbeitet','Der erste Prompt, der sofort gesessen hat','Die Ideenfindung war überraschend kreativ','Das Tool hat besser funktioniert als erwartet','Die Zeitstruktur & Phasen haben gut gepasst'] },
+    { id: 'ai-next', num: '04', q: 'Wie wahrscheinlich nutzt du in den nächsten 2 Wochen ein KI-Tool?',
+      opts: ['Fast sicher — ich hab schon eine Idee','Wahrscheinlich','Vielleicht','Eher nicht'] },
+    { id: 'prototype', num: '05', q: 'Was passiert mit eurer heutigen Idee?',
+      opts: ["Wir bauen weiter — das hat Potenzial","Ich zeig's jemandem / präsentiere es intern","War ein tolles Experiment — Idee ist aber erledigt","Noch unklar"] },
+    { id: 'phase', num: '06', q: 'Welche Phase hat dir persönlich am meisten gebracht?',
+      opts: ['Ideation','Konzeption','Building','Show & Tell'] },
+    { id: 'improve', num: '07', q: 'Was sollten wir beim nächsten Buildathon anders machen?',
+      opts: ['Mehr Zeit fürs Building','Mehr Coaching & Support','Besseres Tool-Onboarding','Mehr Zeit für Ideation','Mehr Zeit für Show & Tell','Nichts — es hat genau so gepasst'] },
+    { id: 'return', num: '08', q: 'Kommst du zum Flagship Buildathon am 24. März?',
+      opts: ['Auf jeden Fall!','Sehr wahrscheinlich',"Ich überleg's mir noch",'Wahrscheinlich nicht'] },
+    { id: 'networking', num: '09', q: 'Hast du heute jemanden kennengelernt, mit dem du in Kontakt bleiben willst?',
+      opts: ['Ja, definitiv — haben uns schon ausgetauscht','Ja, ein paar interessante Leute getroffen','Noch nicht, aber ich würde gerne','War heute nicht so mein Fokus'] },
+    { id: 'team-contribution', num: '10', q: 'Hatte jede:r im Team einen konkreten Beitrag?',
+      opts: ['Ja — alle waren wirklich aktiv eingebunden','Größtenteils — aber 1–2 Personen fanden schwer einen Platz','Nein — es gab zu viel Gedränge um Aufgaben','Eher das Gegenteil — wir hätten mehr Leute gebraucht'] },
+  ];
+
+  const RATING_META = [
+    { id: 'r-role',        q: 'Rolle im Team' },
+    { id: 'r-moderation',  q: 'Moderation & Führung' },
+    { id: 'r-structure',   q: 'Phasen-Struktur' },
+    { id: 'r-output',      q: 'Output des Teams' },
+  ];
+
+  let surveyLoaded = false;
+
+  async function loadSurvey() {
+    if (surveyLoaded) return;
+    const loading = document.getElementById('survey-loading')!;
+    const content = document.getElementById('survey-content')!;
+
+    try {
+      const res = await fetch('/api/admin/survey-results');
+      const d = await res.json();
+      loading.classList.add('hidden');
+
+      if (d.count === 0) {
+        loading.textContent = 'Noch keine Antworten.';
+        loading.classList.remove('hidden');
+        return;
+      }
+
+      surveyLoaded = true;
+      content.innerHTML = '';
+
+      // Summary card
+      const fmt = (ts: number) => new Date(ts).toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' });
+      const summaryCard = `
+        <section class="bg-white rounded-2xl border border-[var(--mid-gray)] p-5">
+          <div class="flex items-center gap-4 flex-wrap">
+            <div class="text-center">
+              <div class="text-3xl font-black text-[var(--orange)]">${d.count}</div>
+              <div class="text-xs text-[var(--text-muted)] mt-0.5">Antworten</div>
+            </div>
+            <div class="h-10 w-px bg-[var(--mid-gray)]"></div>
+            <div class="text-sm text-[var(--dark)]">
+              <span class="text-[var(--text-muted)]">Erste:</span> ${fmt(d.firstAt)}
+              <span class="mx-2 text-[var(--mid-gray)]">·</span>
+              <span class="text-[var(--text-muted)]">Letzte:</span> ${fmt(d.lastAt)}
+            </div>
+          </div>
+        </section>`;
+      content.insertAdjacentHTML('beforeend', summaryCard);
+
+      // Ratings grid
+      const ratingStars = (avg: number) => {
+        const full = Math.floor(avg);
+        const half = avg - full >= 0.4;
+        return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(5 - full - (half ? 1 : 0));
+      };
+
+      let ratingsHtml = '<section class="bg-white rounded-2xl border border-[var(--mid-gray)] p-5"><h2 class="text-base font-bold text-[var(--dark-2)] mb-4">Bewertungen</h2><div class="grid grid-cols-2 gap-3">';
+      for (const rm of RATING_META) {
+        const r = d.ratings[rm.id];
+        if (!r) continue;
+        const total = r.dist.reduce((s: number, v: number) => s + v, 0);
+        let distBars = '';
+        for (let i = 4; i >= 0; i--) {
+          const pct = total ? Math.round((r.dist[i] / total) * 100) : 0;
+          distBars += `<div class="flex items-center gap-1.5 text-xs">
+            <span class="w-3 text-[var(--text-muted)]">${i + 1}</span>
+            <div class="flex-1 h-1.5 bg-[var(--light-gray)] rounded-full overflow-hidden">
+              <div class="h-full bg-[var(--orange)] rounded-full" style="width:${pct}%"></div>
+            </div>
+            <span class="w-5 text-right text-[var(--text-muted)]">${r.dist[i]}</span>
+          </div>`;
+        }
+        ratingsHtml += `<div class="border border-[var(--mid-gray)] rounded-xl p-3">
+          <div class="text-xs text-[var(--text-muted)] mb-1">${rm.q}</div>
+          <div class="text-xl font-black text-[var(--dark-2)] mb-0.5">${r.avg} <span class="text-sm font-normal text-[var(--orange)]">${ratingStars(r.avg)}</span></div>
+          <div class="flex flex-col gap-0.5 mt-2">${distBars}</div>
+        </div>`;
+      }
+      ratingsHtml += '</div></section>';
+      content.insertAdjacentHTML('beforeend', ratingsHtml);
+
+      // MC questions
+      let mcHtml = '<section class="bg-white rounded-2xl border border-[var(--mid-gray)] p-5"><h2 class="text-base font-bold text-[var(--dark-2)] mb-4">Multiple Choice</h2><div class="flex flex-col gap-5">';
+      for (const qm of MC_META) {
+        const counts = d.mc[qm.id] ?? {};
+        const total = Object.values(counts as Record<string, number>).reduce((s, v) => s + v, 0);
+        if (total === 0) continue;
+        // Sort by count desc
+        const sorted = qm.opts
+          .map(opt => ({ opt, count: (counts[opt] ?? 0) as number }))
+          .sort((a, b) => b.count - a.count);
+        const maxCount = sorted[0]?.count ?? 1;
+
+        let optBars = '';
+        for (const { opt, count } of sorted) {
+          if (count === 0) continue;
+          const pct = total ? Math.round((count / total) * 100) : 0;
+          const barPct = Math.round((count / maxCount) * 100);
+          optBars += `<div>
+            <div class="flex justify-between text-xs mb-0.5">
+              <span class="text-[var(--dark)] truncate pr-2">${opt}</span>
+              <span class="text-[var(--text-muted)] shrink-0">${count} · ${pct}%</span>
+            </div>
+            <div class="h-1.5 bg-[var(--light-gray)] rounded-full overflow-hidden">
+              <div class="h-full bg-[var(--orange)] rounded-full transition-all" style="width:${barPct}%"></div>
+            </div>
+          </div>`;
+        }
+        mcHtml += `<div>
+          <div class="text-xs font-semibold text-[var(--text-muted)] mb-1.5">${qm.num} · ${qm.q} <span class="font-normal">(${total})</span></div>
+          <div class="flex flex-col gap-2">${optBars}</div>
+        </div>`;
+      }
+      mcHtml += '</div></section>';
+      content.insertAdjacentHTML('beforeend', mcHtml);
+
+      // Free-text reasons + open feedback
+      const reasonSections = [
+        ...RATING_META.map(rm => ({ id: rm.id, label: rm.q })),
+        { id: 'feedback', label: 'Sonstiges Feedback' },
+      ];
+      const hasReasons = reasonSections.some(s => d.reasons[s.id]?.length);
+      if (hasReasons) {
+        let reasonsHtml = '<section class="bg-white rounded-2xl border border-[var(--mid-gray)] p-5"><h2 class="text-base font-bold text-[var(--dark-2)] mb-4">Freitext-Antworten</h2><div class="flex flex-col gap-4">';
+        for (const s of reasonSections) {
+          const texts: string[] = d.reasons[s.id] ?? [];
+          if (!texts.length) continue;
+          reasonsHtml += `<div>
+            <div class="text-xs font-semibold text-[var(--text-muted)] mb-2">${s.label}</div>
+            <div class="flex flex-col gap-2">
+              ${texts.map(t => `<blockquote class="text-sm text-[var(--dark)] border-l-2 border-[var(--orange)] pl-3 py-0.5 italic">${t}</blockquote>`).join('')}
+            </div>
+          </div>`;
+        }
+        reasonsHtml += '</div></section>';
+        content.insertAdjacentHTML('beforeend', reasonsHtml);
+      }
+
+      content.classList.remove('hidden');
+    } catch {
+      loading.textContent = 'Fehler beim Laden.';
+    }
+  }
 
   // Create Event
   const eventForm = document.getElementById('event-form') as HTMLFormElement;
